@@ -7,7 +7,11 @@ output: html_notebook
 
 ```{r}
 library(tidyverse)
+library(stringr)
+library(viridisLite) # nice colours
 ```
+
+## What's the structure of our data?
 
 ```{r}
 dat <- read_csv("cancer_reg.csv")
@@ -15,6 +19,43 @@ str(dat)
 summary(dat)
 ```
 
+## How much missing data is there?
+
+```{r}
+no_geodat <- dat %>% select(-c("Geography", "binnedInc")) # no missing counties
+no_geodat[!complete.cases(no_geodat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(no_geodat), names_to = "Covariates", values_to = "Values") %>% # pivot into long table
+    filter(is.na(Values)) %>% # filter out all the non-na's
+    ggplot(aes(x = Covariates)) + 
+    geom_bar(position = "dodge", aes(col = Covariates, fill = Covariates)) + 
+    theme_bw() + 
+    scale_fill_viridis_d() + 
+    scale_color_viridis_d()
 
 
+```
+Interestingly, there is some missing data in the reporting of county employment for residents age 16 and over. We observe more missing data in percentages of county residents with only private healthcare coverage, and missing data in the majority of counties for reports of the percent of county residents between 18 and 24 years old with with some college as their highest attained education. One hypothesis for why there may be a large amount of missing data in educational reporting for 18 to 24 year olds with some college may be because some counties may not have high emphasis on higher education and many individuals in this age range that are pursuing college will probably be in more college-oriented counties.
 
+
+## Exploring data patterns and modeling
+
+```{r, fig.width=10, fig.height=10}
+pairs(dat %>% select(where(is.numeric)))
+```
+
+
+### Look at the state-wide view
+
+```{r}
+dat <- dat %>%
+    mutate(state = str_extract(Geography, "[^,]+$")) %>% # regex to select everything after ','
+    mutate(state = str_trim(state))
+```
+
+```{r}
+dat %>%
+    ggplot(aes(x = state, y = avgDeathsPerYear, colour = state, fill = state)) +
+    geom_boxplot() + 
+    theme_bw() + 
+    coord_flip()
+```
