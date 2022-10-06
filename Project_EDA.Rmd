@@ -2,3 +2,19 @@
 title: "BST210 Project EDA"
 output: html_notebook
 ---
+
+# Exploratory Data Analysis
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+dat <- read_csv("cancer_reg.csv")
+str(dat)
+summary(dat)
+```
+
+
+
+
