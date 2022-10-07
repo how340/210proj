@@ -17,6 +17,7 @@ dat <- read_csv("cancer_reg.csv")
 str(dat)
 summary(dat)
 ```
+From the summary above, we can observe that we have a lot of variables to consider to answer our main questions. Additionally, it tells us about the complexity about the data itself in that cancer prevalence is a factor of many socioeconomic factors.
 
 ## How much missing data is there?
 
@@ -33,6 +34,7 @@ no_geodat[!complete.cases(no_geodat),] %>%  # keep rows with NAs
 
 
 ```
+
 Interestingly, there is some missing data in the reporting of county employment for residents age 16 and over. We observe more missing data in percentages of county residents with only private healthcare coverage, and missing data in the majority of counties for reports of the percent of county residents between 18 and 24 years old with with some college as their highest attained education. One hypothesis for why there may be a large amount of missing data in educational reporting for 18 to 24 year olds with some college may be because some counties may not have high emphasis on higher education and many individuals in this age range that are pursuing college will probably be in more college-oriented counties.
 
 
@@ -58,3 +60,5 @@ dat %>%
     theme_bw() + 
     coord_flip()
 ```
+
+It appears that there are some potential outliers when studying the relationship between states and average deaths per year due to cancer. Particularly, there may be potential outliers in the data for California, Illinois, and Arizona. We would need to further examine the reasons for such a large deviation from the rest of the data. Additionally, it appears that the more populated states, such as California and New York, have a higher average death rate compared to less populated states like Wyoming. 
