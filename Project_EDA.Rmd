@@ -43,34 +43,37 @@ Interestingly, there is some missing data in the reporting of county employment 
 ```{r, fig.width=10, fig.height=10}
 pairs(dat %>% select(where(is.numeric)))
 ```
+
 However, showing all of the variables is somewhat ineffective in showing the the relationship between the variables. A few variables that are strongly correlated are singled out for better visibility.
-
-
-
 
 ```{r}
 plot(dat$PctPublicCoverageAlone, dat$PctPublicCoverage, xlab = "Percent Public Coverage Alone", ylab = "Percent Public Coverage")
 ```
+
 It is self explanatory that the higher the percentage of the county population is under public healthcare, the higher the percentage of the county single persons is under public healthcare. 
 
 ```{r}
 plot(dat$avgAnnCount, dat$popEst2015, xlab = "Annual cancer diagnosis count", ylab = "county population ")
 ```
+
 This is another expected correlation. The higher the population is, the more cancer occurance will be in the population. 
 
 ```{r}
 plot(dat$medIncome,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "county median income")
 ```
+
 This is an example of significant predictors for our model. Annual income is likely very correlated with the # of cancer related death rate. However, we need to further explore what kind of model will be best fit for the data. 
 
 ```{r}
 plot(dat$AvgHouseholdSize,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "Average household size")
 ```
+
 As the plot suggests, there isn't a clear relationship between cancer-related death rate and the average household size. However, furtherwork could help illustrate some latent meanings. 
 
 ```{r}
 plot(dat$PercentMarried,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "Percentage of married person in the County")
 ```
+
 It seems that there is a negative association between percent of people married and cancer-related death rate. This seems to be another valuable predictor that we could use in our model. 
 
 These graphs are a brief look into the possible associations within our data set. We need to be careful that some of these relationships might be confounded by other co-variates, We also need to conduct confounding analysis (both classical, and statistical), effect modifier analysis to figure out the nature of the associations. 
