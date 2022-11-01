@@ -1,0 +1,27 @@
+---
+title: "project check 1"
+author: "Hongkai Wang"
+date: "2022-11-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(tidyr)
+
+#this line is for setting file path on Bruce's home pc. 
+setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
+data = read_csv("cancer_reg.csv")
+```
+
+
+
+## Fitting an linear model
+
+To begin our exploration of the data set, let's first fit an linear model to the existing cancer data set. We have decided to use a bottom up approach, where we create linear models by adding in other variables. 
+

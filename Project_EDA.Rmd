@@ -1,5 +1,6 @@
 ---
-title: "BST210 Project EDA" 
+title: "BST210 Project EDA"
+output: pdf_document
 ---
 
 # Exploratory Data Analysis
