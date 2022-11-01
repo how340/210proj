@@ -16,12 +16,21 @@ library(tidyr)
 
 #this line is for setting file path on Bruce's home pc. 
 setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
-data = read_csv("cancer_reg.csv")
+dat = read_csv("cancer_reg.csv")
 ```
 
 
 
 ## Fitting an linear model
 
-To begin our exploration of the data set, let's first fit an linear model to the existing cancer data set. We have decided to use a bottom up approach, where we create linear models by adding in other variables. 
+Linear regression models hold a special position in the world of statistics, as it is one of the oldest, and the most tried-and-true method of models. For the purpose of this project, linear models, both GAM and multiple regression, serve as an valuable and important introduction to the exploration of the dataset. Our data set contains information on the socioeconomoy status, cancer death rate, demographic, etc. of US counties. If we view cancer death rate as an continuous variable outcome, we can most certainly derive very useful information on the relationship between social factors and the cancer death rate within different US counties. 
 
+
+```{r}
+dat
+
+mod1 = lm(data = dat, TARGET_deathRate ~ medIncome + MedianAge + studyPerCap + PctPrivateCoverage + PctWhite)
+summary(mod1)
+```
+
+To start off our exploration of the linear model, I decided to select five predictor variables: median income, median age, cancer study in the county per capita, percentage of private health insurance coverage, and percentage of white resident in the county. From the summary statistics, we see that median age, and studyPerCap are not good predictors of the model. 
