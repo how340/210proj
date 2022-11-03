@@ -1,0 +1,141 @@
+---
+title: "BST210 HW4 Project CheckIn 1"
+subtitle: 'Group 7: Ryan Wang, Stella Nam, Hongkai Wang'
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+### 1. What is the general domain/subject area of this project?
+The general domain/subject area of this project is cancer prevalence with respect to socioeconomic status in the United States.
+
+### 2. What data will you use, and what is the source?
+We are using data from [“OLS Regression Challenge - dataset by nrippner | data.world"](https://data.world/nrippner/ols-regression-challenge), which aggregates socioeconomic and clinical data from census.gov, clinicaltrials.gov, and cancer.gov. These cancer outcomes data were aggregated from cancer trials during 01/01/2010 through 06/01/2016 and socioeconomic and demographic data were aggregated from 2013 U.S. census data.
+
+### 3. What primary questions will you seek to answer?
+We are trying to explore the relationship between cancer-related death and the socioeconomic status of US counties. We will use predictors such as median income, age, and employment status to create a model that could predict the number of cancer diagnoses. 
+
+### 4. What secondary questions will you seek to answer?
+Some secondary questions we are considering revolve around analysis of demographic data from the dataset. We are proposing to explore the relationship between race, income, and available medical resources in each county. 
+
+### 5. What outcome(s)/endpoint(s) will you use? (could be continuous, binary, polytomous, Poisson, survival,...and you may be considering more than one--and this may be updated/added to, as the semester progresses)
+Our main outcome will be the cancer-related death rates in US counties from 2010 to 2016. This outcome is transformed from discrete count (count of cancer-related deaths)  type, and we will use poisson distribution to model. For our secondary questions, we might 
+        
+### 6. What is your draft Statistical Analysis Plan? (should be a very thorough, detailed, bullet point outline, demonstrating that you have broadly thought this through and included details - this may be updated of course as the semester proceeds, and with feedback) ** Note that we will be discussing all forms of outcome/endpoint data in this course, and at present have not yet covered each of these...so this plan may be updated/added to as the semester progresses, but you still should be able to plan out the structure and significant details of your plan.  If your outcome data is other than continuous, you can still include for instance 'Regression modeling involving 'Y' outcome data of interest, involving these variables (list them)...' and any other concerns or methods of interest (listing potential confounders, effect modifiers, potential use of splines or additive modeling, potential missing data considerations, data reduction methods, regularization methods, etc,...or none of these--you will want to consider what is most appropriate for your data and questions at hand).  Recall the BST 210 Regression Models Overview Table from which most extensions arise.
+Analysis plan: 
+
+* Poisson regression (within a generalized linear framework) will be our main modeling approach. GAMs and splines could also be added to the model as we progress into the project.
+* The cancer-related death counts could be seen as a Poisson distribution. 
+* Data cleaning and computing additional predictors (e.g., regions, climate … ) 
+* Create comprehensive visualization of our demographic data to illustrate differences between US counties. 
+* There are 3046 empty data points in our data. Currently, we are planning on learning and exploring different amputation techniques to adjust for these data points.
+* Identify and adjust for potential confounders (on the association of SES to cancer prevalence) such as, but not limited to, county and income.  
+ 
+### 7. What are the biggest challenges you foresee in answering your proposed questions and completing this project? (logistical, statistical, etc, if there are any)
+A challenge we could face is that our data is predominantly collected on the caucasian population rather than populations of ethnic minority groups. The lack of data of these underrepresented groups may lead to potential bias in our findings. The data on socioeconomic status is not stratified on ethnicity, making it difficult to determine outcomes by race. Additionally, a lot of the data is in percentages. Therefore, when we convert the data into counts, the data may not be independent between different variables. 
+ 
+### 8. Will you seek domain expertise? Why or why not? If so, from whom?
+No, we will not seek domain expertise because the data is fairly general to all cancer cases. All our group members have some background in life sciences, molecular biology, and/or economics, which we believe is sufficient for the scope of the project. However, if need be, we can further scope the literature for additional information on cancer biology or economic terminology. 
+ 
+### 9. What software package(s) will you use to complete this project? (It is absolutely fine for different group members to use different packages; in fact, some tasks are easier in some packages over others and vice versa.)
+We will use the R statistical programming language to analyze these data and complete this project. We plan on using tidyverse for transforming and cleaning data. Furthermore, this library of packages allows us to create effective EDA plots in order to explore our data efficiently. For modeling, we plan on using the `lm` and `glm` functions in base R for standard linear regression and Poisson regression (or other generalized models we may approach later), respectively.
+ 
+### 10. Complete an initial round of exploratory analyses on your data that would be relevant to your plan and responses above, and include any plots, summaries, code and output.  Please include exploratory analysis for outcome(s) of continuous form however/wherever possible even if your ultimate goals/questions involve a different form of outcome data such as binary, polytomous, etc.  (You may consider this initial analysis as a potential sub-analysis later on.)
+
+#### Exploratory Data Analysis
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(viridisLite) # nice colours
+```
+
+##### What's the structure of our data?
+
+```{r}
+dat <- read_csv("cancer_reg.csv")
+str(dat)
+summary(dat)
+```
+
+From the summary above, we can observe that we have a lot of variables to consider to answer our main questions. Additionally, it tells us about the complexity about the data itself in that cancer prevalence is a factor of many socioeconomic factors.
+
+##### How much missing data is there?
+
+```{r}
+no_geodat <- dat %>% select(-c("Geography", "binnedInc")) # no missing counties
+no_geodat[!complete.cases(no_geodat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(no_geodat), names_to = "Covariates", values_to = "Values") %>% # pivot into long table
+    filter(is.na(Values)) %>% # filter out all the non-na's
+    ggplot(aes(x = Covariates)) + 
+    geom_bar(position = "dodge", aes(col = Covariates, fill = Covariates)) + 
+    theme_bw() + 
+    scale_fill_viridis_d() + 
+    scale_color_viridis_d()
+```
+
+Interestingly, there is some missing data in the reporting of county employment for residents age 16 and over. We observe more missing data in percentages of county residents with only private healthcare coverage, and missing data in the majority of counties for reports of the percent of county residents between 18 and 24 years old with with some college as their highest attained education. One hypothesis for why there may be a large amount of missing data in educational reporting for 18 to 24 year olds with some college may be because some counties may not have high emphasis on higher education and many individuals in this age range that are pursuing college will probably be in more college-oriented counties.
+
+##### Exploring data patterns and modeling
+
+```{r, fig.width=10, fig.height=10}
+pairs(dat %>% select(where(is.numeric)))
+```
+
+However, showing all of the variables is somewhat ineffective in showing the the relationship between the variables. A few variables that are strongly correlated are singled out for better visibility.
+
+```{r}
+plot(dat$PctPublicCoverageAlone, dat$PctPublicCoverage, xlab = "Percent Public Coverage Alone", ylab = "Percent Public Coverage")
+```
+
+It is self explanatory that the higher the percentage of the county population is under public healthcare, the higher the percentage of the county single persons is under public healthcare. 
+
+```{r}
+plot(dat$avgAnnCount, dat$popEst2015, xlab = "Annual cancer diagnosis count", ylab = "county population ")
+```
+
+This is another expected correlation. The higher the population is, the more cancer occurance will be in the population. 
+
+```{r}
+plot(dat$medIncome,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "county median income")
+```
+
+This is an example of significant predictors for our model. Annual income is likely very correlated with the # of cancer related death rate. However, we need to further explore what kind of model will be best fit for the data. 
+
+```{r}
+plot(dat$AvgHouseholdSize,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "Average household size")
+```
+
+As the plot suggests, there isn't a clear relationship between cancer-related death rate and the average household size. However, furtherwork could help illustrate some latent meanings. 
+
+```{r}
+plot(dat$PercentMarried,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "Percentage of married person in the County")
+```
+
+It seems that there is a negative association between percent of people married and cancer-related death rate. This seems to be another valuable predictor that we could use in our model. 
+
+These graphs are a brief look into the possible associations within our data set. We need to be careful that some of these relationships might be confounded by other co-variates, We also need to conduct confounding analysis (both classical, and statistical), effect modifier analysis to figure out the nature of the associations. 
+
+##### Look at the state-wide view
+
+```{r}
+dat <- dat %>%
+    mutate(state = str_extract(Geography, "[^,]+$")) %>% # regex to select everything after ','
+    mutate(state = str_trim(state))
+```
+
+```{r}
+dat %>%
+    ggplot(aes(x = state, y = avgDeathsPerYear, colour = state, fill = state)) +
+    geom_boxplot() + 
+    theme_bw() + 
+    coord_flip()
+```
+
+It appears that there are some potential outliers when studying the relationship between states and average deaths per year due to cancer. Particularly, there may be potential outliers in the data for California, Illinois, and Arizona. We would need to further examine the reasons for such a large deviation from the rest of the data. Additionally, it appears that the more populated states, such as California and New York, have a higher average death rate compared to less populated states like Wyoming. 
+
+### 11.
+_We attest that no member of this group is using these data or same/similar questions in any other course or course project, at HSPH._
+        
+_Hongkai Wang, Stella Nam, Ryan Wang_
+
