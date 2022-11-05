@@ -192,6 +192,147 @@ For the 4.9885% missing data from percentage of employed individuals 16 or over 
 For the 19.9869% of missing insurance data, we will perform a sensitivity analysis. That is, viewing models under complete cases, under imputation (mean, EM, random forest), and under other missing data methods such as inverse proportional weighting. We will also explore these methods conditional on the states, as we believe that counties within a state are more likely to be similar to each other as they are geographically similar, and share state-level policies, which would likely influence the socioeconomic attributes within a county.
 
 ## 5. Modelling Approches
+
+### a. Fitting an linear model
+
+
+```{r, echo = F}
+#load data
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+
+#this line is for setting file path on Bruce's home pc. 
+setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
+dat = read_csv("cancer_reg.csv")
+```
+Linear regression models hold a special position in the world of statistics, as it is one of the oldest, and the most tried-and-true method of models. For the purpose of this project, linear models, both GAM and multiple regression, serve as an valuable and important introduction to the exploration of the dataset. Our data set contains information on the socioeconomic status, lung cancer death rate, demographic, etc. of US counties. If we view cancer death rate as an continuous variable outcome, we can most certainly derive very useful information on the relationship between social factors and the cancer death rate within different US counties. 
+
+Our main interest in the data set is whether we can derive some useful relationship between the social-economic status of US counties, and their lung cancer-related death rate. In our data set, the lung cancer-related death rate is specifically defined to be the Mean per 100,000 citizen lung cancer mortality over the data collection period (2010 -2016, with exception of the additional education data that was collected in 2020). Before we formally think about the model structure, we should first define our set of social economic status indicators. 
+
+Several co-variates from our data is specifically useful in defining the social-economic status of a region. First, median income is a key predictor as it is often used by economists in their evaluation of the wealthiness of a region. Second, median age is an important demographic descriptor in two sense. Median age can describe both the likelihood to get lung cancer (older people are more susceptible to cancer) and the wealth level of the county (older people are more likely to be richer). Third, percentage of white people in each county could also be useful in defining the social-economic status of the region, as historically, white neighborhoods are more likely to be better funded, and thus result in better healthcare conditions. With these indicators in mind, let's first explore a multiple linear regression model. 
+
+#### Model assumptions: 
+Since our data are sourced from census, and goverment sources, we have reason to believe that each predictor variables following the central limiting theorem (each covariate entry is the mean over multiple years samples), and the LINE assumptions should be met. 
+
+#### data transformation and cleaning: 
+
+```{r}
+hist(dat$medIncome)
+hist(dat$PctWhite)
+hist(dat$MedianAge, breaks = 100)
+```
+we see that there are some insanely high median age here. These has to be errors in data collection or imputing process as it is improbable to have median ages that high. let's remove these rows of data for now. 
+
+```{r}
+dat = dat %>% filter(MedianAge <= 100)
+
+hist(dat$MedianAge, breaks = 100)
+```
+
+The other two variables are skewed, but they should be workable. I am not normalizing the income data as the interpretability is a bit better this way. 
+
+#### model fitting:
+
+```{r}
+mod1 = lm(data = dat, TARGET_deathRate ~ medIncome + MedianAge + PctWhite)
+summary(mod1)
+```
+
+Based on the model summary, we can see that median age is not a significant predictor of lung cancer death rate itself, which is a bit surprising based on previous assumptions. However, it could act still act as a confounder or effect modifier for our model. At the same time, it is good to see that both median income and the percentage of white population within a county is significantly correlated with lung cancer death rate. However, as previously illustrated, median age could also be a confounder to median income. Thus, let's quickly do some tests on whether median age is a confounder here. 
+
+```{r}
+mod1.1 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite)
+summary(mod1.1)
+anova(mod1.1, mod1)
+```
+
+We see that removing median age doesn't affect the coefficients of the two other covariates at all. And LRT result supports this finding. 
+
+```{r}
+mod1.2 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + medIncome*MedianAge)
+summary(mod1.2)
+anova(mod1.2, mod1)
+
+mod1.3 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + PctWhite*MedianAge)
+summary(mod1.3)
+anova(mod1.3, mod1)
+```
+
+Unfortunately, we can see that median age doesn't really play any part as the effect modifier of median income or percentage of white population in the model. At this point, we can decide that for the linear model, we can clearly define the two core descriptor of social economic status is median income and percentage of white population. let's expand a bit more here. First, I will include the precentage of white, black, asian, and other race percentage into the model to see if we can increase the predictive power of the model. 
+
+```{r}
+mod1.4 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctBlack + PctAsian + PctOtherRace)
+summary(model1.4)
+```
+
+We see that the adjusted R-squared value of model 1.4 is higher than model 1.3 and it is beneficial to include a fuller description of the racial distribution. However, we can also see that the Asian and Black percentages are not very significant. By definition, there should be some interactions between these percentages, and it is worth it to check it out. 
+
+```{r}
+cor(dat$PctAsian, dat$PctWhite)
+cor(dat$PctBlack, dat$PctWhite)
+cor(dat$PctOtherRace, dat$PctWhite)
+```
+
+We see that the value of PctBlack and PctWhite are strongly negatively correlated, and the other two percentages are weakly correlated. Thus, we should remove PctBlack from the model to reduce colinearity. 
+
+```{r}
+mod1.5 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctAsian + PctOtherRace)
+summary(model1.5)
+anova(mod1.5, mod1.1)
+```
+
+After removing the PctBlack covariate, we see that there is a significant increase in adjusted R-squared value to mod1.1(baseline) and LRT results suggest the models are significantly different from each other. Let's take another look at the median income covariates again. My main interest here is that whether a quadratic term would benefit our model, as a income could have diminishing return effect on lung cancer prevention/death rate. 
+
+```{r}
+mod1.6 = lm(data = dat, TARGET_deathRate ~ medIncome)
+summary(mod1.6)
+mod1.6.1 = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2))
+summary(mod1.6.1)
+anova(mod1.6, mod1.6.1)
+
+predict = data.frame(TARGET_deathRate = predict(mod1.6.1, dat), medIncome = dat$medIncome)
+
+dat %>% ggplot(aes(medIncome, TARGET_deathRate)) + geom_point() + geom_smooth(method = "lm") + geom_line(data = predict, aes(medIncome,TARGET_deathRate ), color = "red")
+```
+
+Judging from summary output, the quadratic model performs better than the purely linear model (based on adjusted R-squared value) and the two models are statistically different. However, a visual inspection of the data doesn't really show that the quadratic model is significantly better. At this point, we decide to keep the quadratic term due to the diagnostic stats. 
+
+We now have this following core model: 
+```{r}
+mod1_core = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2)+ PctWhite + PctAsian + PctOtherRace)
+summary(mod1_core)
+
+```
+
+let's evaluate the residual diagnostic to confirm the model's validity. 
+
+
+```{r}
+standardized_res = rstandard(mod1_core)
+scatter.smooth(standardized_res, main = "standardized residual")
+qplot(standardized_res, binwidth = 0.2)
+
+qqnorm(standardized_res, pch = 1, frame = FALSE)
+qqline(standardized_res, col = "steelblue", lwd = 2)
+```
+
+The model looks good, and the qqplot of the standardized residual plot only deviates from the straight line at the two edges. Thus, in conclusion, our core model is a good place to start for our future work. 
+
+#### future work and direction
+
+As mentioned in the missing data section, the education data is largely missing and we weren't able to directly add them to our analysis. We have acquired further information on the education level of each US county (data sourced from a 2020 study). However, the integration of the new data into our data set requires additional cleaning and this process will be conducted at a later time point. Furthermore, we are also looking to incorporate the insurance information of the US counties into the linear model. 
+
+We are considering using GAM models in our future exploration as well. Using different smoothing methods could improve the performance of our models, and we are definitely interested in testing them out.
+
+After we include all of the variables that we are interested in, we will preform Lasso, ridge, and elastic net models to reduce the overfitting and deciding on our final linear model. As we increase the number of predictor variables, we are expecting that some of them might be excluded from the final model during the either the lasso or the elastic net fitting process. 
+
+
+### b. Logistic/multinomial/ordinal regression
+
+
+
+
 ### c. Poisson Regression
 
 ### Over-dispersion
