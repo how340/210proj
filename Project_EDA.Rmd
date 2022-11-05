@@ -14,11 +14,11 @@ library(viridisLite) # nice colours
 ## What's the structure of our data?
 
 ```{r}
-dat <- read_csv("cancer_reg.csv")
+dat <- read_csv("data/cancer_reg.csv")
 str(dat)
 summary(dat)
-ed <- read_csv("Education.csv")
-states <- read_csv("50_states.csv") %>% 
+ed <- read_csv("data/Education.csv")
+states <- read_csv("data/50_states.csv") %>% 
     add_row(State="District of Columbia", Abbr="DC", `State Capital`="Washington", Region="East")
 ```
 
@@ -204,7 +204,7 @@ library(ggplot2)
 
 #this line is for setting file path on Bruce's home pc. 
 setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
-dat = read_csv("cancer_reg.csv")
+dat = read_csv("data/cancer_reg.csv")
 ```
 Linear regression models hold a special position in the world of statistics, as it is one of the oldest, and the most tried-and-true method of models. For the purpose of this project, linear models, both GAM and multiple regression, serve as an valuable and important introduction to the exploration of the dataset. Our data set contains information on the socioeconomic status, lung cancer death rate, demographic, etc. of US counties. If we view cancer death rate as an continuous variable outcome, we can most certainly derive very useful information on the relationship between social factors and the cancer death rate within different US counties. 
 
@@ -263,7 +263,7 @@ Unfortunately, we can see that median age doesn't really play any part as the ef
 
 ```{r}
 mod1.4 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctBlack + PctAsian + PctOtherRace)
-summary(model1.4)
+summary(mod1.4)
 ```
 
 We see that the adjusted R-squared value of model 1.4 is higher than model 1.3 and it is beneficial to include a fuller description of the racial distribution. However, we can also see that the Asian and Black percentages are not very significant. By definition, there should be some interactions between these percentages, and it is worth it to check it out. 
@@ -278,7 +278,7 @@ We see that the value of PctBlack and PctWhite are strongly negatively correlate
 
 ```{r}
 mod1.5 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctAsian + PctOtherRace)
-summary(model1.5)
+summary(mod1.5)
 anova(mod1.5, mod1.1)
 ```
 
