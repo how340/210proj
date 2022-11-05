@@ -1,0 +1,40 @@
+---
+title: "project check 1"
+author: "Hongkai Wang"
+date: "2022-11-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(tidyr)
+
+#this line is for setting file path on Bruce's home pc. 
+setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
+dat = read_csv("cancer_reg.csv")
+```
+
+
+
+## Fitting an linear model
+
+Linear regression models hold a special position in the world of statistics, as it is one of the oldest, and the most tried-and-true method of models. For the purpose of this project, linear models, both GAM and multiple regression, serve as an valuable and important introduction to the exploration of the dataset. Our data set contains information on the socioeconomic status, lung cancer death rate, demographic, etc. of US counties. If we view cancer death rate as an continuous variable outcome, we can most certainly derive very useful information on the relationship between social factors and the cancer death rate within different US counties. 
+
+Our main interest in the data set is whether we can derive some useful relationship between the social-economic status of US counties, and their lung cancer-related death rate. In our data set, the lung cancer-related death rate is specifically defined to be the Mean per 100,000 citizen lung cancer mortality over the data collection period (2010 -2016, with exception of the additional education data that was collected in 2020). Before we formally think about the model structure, we should first define our set of social economic status indicators. 
+
+Several co-variates from our data is specifically useful in defining the social-economic status of a region. First, median income is a key predictor as it is often used by economists in their evaluation of the wealthiness of a region. Second, median age is an important demographic descriptor in two sense. Median age can describe both the likelihood to get lung cancer (older people are more susceptible to cancer) and the wealth level of the county (older people are more likely to be richer). Third, percentage of white people in each county could also be useful in defining the social-economic status of the region, as historically, white neighborhoods are more likely to be better funded, and thus result in better healthcare conditions. With these indicators in mind, let's first explore a multiple linear regression model
+
+
+```{r}
+dat
+
+mod1 = lm(data = dat, TARGET_deathRate ~ medIncome + MedianAge + studyPerCap + PctPrivateCoverage + PctWhite)
+summary(mod1)
+```
+
+To start off our exploration of the linear model, I decided to select five predictor variables: median income, median age, cancer study in the county per capita, percentage of private health insurance coverage, and percentage of white resident in the county. From the summary statistics, we see that median age, and studyPerCap are not good predictors of the model. 
