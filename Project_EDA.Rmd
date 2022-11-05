@@ -330,6 +330,62 @@ After we include all of the variables that we are interested in, we will preform
 
 ### b. Logistic/multinomial/ordinal regression
 
+Logistic/multinomial/ordinaln does not really fit into the exploration of our primary goals, as the lung-cancer death count can be mostly view as either a count statistics or a continuous outcome. However, there are several thing that we could do to incorporate Logistic/multinomial/ordinal regression into our project. 
+
+First, we can split the lung-cancer death rate into several categories to broadly access the healthcare system at each county. For example, we can artificially create three different categories in the death rate variable. Let's take a look at the death rate distribution. 
+
+
+```{r}
+hist(dat$TARGET_deathRate, breaks = 100)
+```
+
+We can make three bins, deathrate < 150, 150 <= deathrate < 200, 200 <= deathrate, and use them as a proxy to the quality of lung cancer prevention and quality of cancer care for each US county. But in fairness, the use of logistic regression in this case wouldn't benefit us too much as it doesn't really bring any new insight to our analysis. The previous linear model already provides a fine baseline in assess the same information for each US county. The normal distribution of lung cancer death rate also suggests that dividing outcomes into bins doesn't really benefit us with our primary goal. 
+
+But let's do it anyway to test it out anyway. 
+
+
+```{r}
+#create the three bins
+dat = dat %>% mutate(multi = case_when(TARGET_deathRate < 150 ~ 1, TARGET_deathRate < 200 ~ 2, T ~ 3))
+# 3 is bad quality lung cancer prevention, 2 is medium, 1 is good quality.  
+```
+
+
+
+```{r}
+library(nnet)
+mod2.1 <- multinom(multi ~ medIncome + I(medIncome ^2), data = dat)
+summary(mod2.1)
+```
+
+```{r}
+plot(mod2.1$fitted.values[,1][order(dat$medIncome)] ~ sort(dat$medIncome), type="l", col="dodgerblue", xlab=c("Median Income"), ylab="Predicted Probability", ylim=c(0,1))
+points(mod2.1$fitted.values[,2][order(dat$medIncome)] ~ sort(dat$medIncome), type="l", col="magenta")
+points(mod2.1$fitted.values[,3][order(dat$medIncome)]~sort(dat$medIncome), type="l", col="green")
+```
+
+we see that as median income increases, the county is much more likely to fall into the category 1, which is county with low lung cancer death rate. We can do the same with percentage of white citizens in the county as well. 
+
+
+
+```{r}
+mod2.2 <- multinom(multi ~ PctWhite , data = dat)
+summary(mod2.2)
+
+
+plot(mod2.2$fitted.values[,1][order(dat$PctWhite)] ~ sort(dat$PctWhite), type="l", col="dodgerblue", xlab=c("Percentage of white residents"), ylab="Predicted Probability", ylim=c(0,1))
+points(mod2.2$fitted.values[,2][order(dat$PctWhite)] ~ sort(dat$PctWhite), type="l", col="magenta")
+points(mod2.2$fitted.values[,3][order(dat$PctWhite)]~sort(dat$PctWhite), type="l", col="green")
+```
+
+We see that percentage of white resident has less impact on the categorization of the county. 
+
+However, we can see that this type of multinomial regression is less interesting than the linear model, as we are grossly categorizing the outcome variables. 
+Thus, we have decided to take the logistic regression to another direction. Logistic regression could serve as an excellent method for the exploration of our secondary goals. 
+
+One possible direction that we could take is to explore socioeconomic status and political tendencies. The US bipartisan system provides a excellent binary outcome for our logistic models. We could decide whether what would drive the county to vote for either candidates. To explore this topic, we would need to find additional data on the voting outcomes of 2016 on a county level and merge with our existing data set. This exploration will have to be conducted at a later time after we find a trustworthy and accurate data source. Currently, the politico site serves as the preliminary source for our data as it contains detailed county level voting outcomes. Source: https://www.politico.com/2016-election/results/map/president/. 
+
+Additional data wrangling is required before we move forward with the Logistic/multinomial/ordinal regression analysis. Our current plan for the regressions invovles using the covariates from the previous linear models and develop our model from there. We think that the logistic regression model would be helpful in showing the political preference of different demographic groups. 
 
 
 
