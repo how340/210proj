@@ -17,75 +17,156 @@ library(viridisLite) # nice colours
 dat <- read_csv("cancer_reg.csv")
 str(dat)
 summary(dat)
+ed <- read_csv("Education.csv")
+states <- read_csv("50_states.csv") %>% 
+    add_row(State="District of Columbia", Abbr="DC", `State Capital`="Washington", Region="East")
 ```
-From the summary above, we can observe that we have a lot of variables to consider to answer our main questions. Additionally, it tells us about the complexity about the data itself in that cancer prevalence is a factor of many socioeconomic factors.
+
+```{r}
+# get county names
+dat <- dat %>% 
+    mutate(county_name = str_split(Geography, ",") %>% map_chr(., 1))%>%
+    mutate(state = str_extract(Geography, "[^,]+$")) %>% # regex to select everything after ','
+    mutate(state = str_trim(state)) %>%
+    left_join(states, by=c("state" = "State")) %>%
+    filter(county_name != "Valdez-Cordova Census Area")
+
+Encoding(dat$county_name) <- "UTF-8"
+dat$county_name <- iconv(dat$county_name, "UTF-8", "UTF-8", sub='')
+dat <- dat %>%
+    mutate(county_name = ifelse(county_name == "Doa Ana County", "Dona Ana County", county_name))
+
+# get education stats from 2016-2020 https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/
+ed <- ed %>%
+    filter(grepl("2016", Attribute)) %>%
+    rename(county_name = `Area name`) %>%
+    pivot_wider(names_from = Attribute, values_from = Value)  %>%
+    mutate(county_name = case_when(county_name == "La Salle County" & State != "TX" ~ "LaSalle County",
+                                   county_name == "La Salle Parish" ~ "LaSalle Parish",
+                                   TRUE ~ county_name))
+
+dat <- ed %>%
+    right_join(dat, by=c("county_name", "State" = "Abbr")) %>%
+    distinct()
+```
 
 ## How much missing data is there?
 
 ```{r}
-no_geodat <- dat %>% select(-c("Geography", "binnedInc")) # no missing counties
+no_geodat <- dat %>% select(-c("Geography", "State Capital", "Region", "state", "State", "county_name", "binnedInc")) # no missing counties
 no_geodat[!complete.cases(no_geodat),] %>%  # keep rows with NAs
     pivot_longer(colnames(no_geodat), names_to = "Covariates", values_to = "Values") %>% # pivot into long table
     filter(is.na(Values)) %>% # filter out all the non-na's
     ggplot(aes(x = Covariates)) + 
     geom_bar(position = "dodge", aes(col = Covariates, fill = Covariates)) + 
     theme_bw() + 
-    scale_fill_viridis_d() + 
-    scale_color_viridis_d()
-
-
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+    theme(axis.text.x = element_blank())
 ```
-
 Interestingly, there is some missing data in the reporting of county employment for residents age 16 and over. We observe more missing data in percentages of county residents with only private healthcare coverage, and missing data in the majority of counties for reports of the percent of county residents between 18 and 24 years old with with some college as their highest attained education. One hypothesis for why there may be a large amount of missing data in educational reporting for 18 to 24 year olds with some college may be because some counties may not have high emphasis on higher education and many individuals in this age range that are pursuing college will probably be in more college-oriented counties.
 
+```{r, fig.height = 5, fig.width = 8}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent employed 16 and over")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent employed 16 and over")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+```{r, fig.height = 5, fig.width = 8}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent some college education 18-24")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete some college education 18-24")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+
+```{r, fig.height = 5, fig.width = 8}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent alone private coverage")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent alone private coverage")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+
+```{r}
+colMeans(is.na(no_geodat))*100
+```
+
+
+```{r}
+ed_missing <- setdiff(unique(ed$county_name), unique(dat$county_name))
+filter(ed, county_name %in% ed_missing)
+dat_missing <- setdiff(unique(dat$county_name), unique(ed$county_name))
+filter(dat, county_name %in% dat_missing)
+```
+Here we show some difference in county representation within our two integrated cancer trial and socioeconomic dataset with a dataset of education attainment by county. Notably, a large difference in the counties from both datasets is the inclusino of Puerto Rico. While the education dataset includes Puerto Rico, the cancer trial data set does not. This means this missing data is **MAR** for our primary inference since it depends on a covariate *State* (or **MNAR** for our secondary as county is an outcome), however we will consider our analysis without Puerto Rico as it is a unique situation and not localized to the North American land mass. Other missing cancer data are at the county level, not found in the education dataset, similarly, as we are focused on the cancer data, we will disregard these education data (as we have education data for all cancer-statistic counties we have). 
 
 ## Exploring data patterns and modeling
 
 ```{r, fig.width=10, fig.height=10}
-pairs(dat %>% select(where(is.numeric)))
+#pairs(dat %>% select(where(is.numeric)))
 ```
 
-However, showing all of the variables is somewhat ineffective in showing the the relationship between the variables. A few variables that are strongly correlated are singled out for better visibility.
-
-```{r}
-plot(dat$PctPublicCoverageAlone, dat$PctPublicCoverage, xlab = "Percent Public Coverage Alone", ylab = "Percent Public Coverage")
-```
-
-It is self explanatory that the higher the percentage of the county population is under public healthcare, the higher the percentage of the county single persons is under public healthcare. 
-
-```{r}
-plot(dat$avgAnnCount, dat$popEst2015, xlab = "Annual cancer diagnosis count", ylab = "county population ")
-```
-
-This is another expected correlation. The higher the population is, the more cancer occurance will be in the population. 
-
-```{r}
-plot(dat$medIncome,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "county median income")
-```
-
-This is an example of significant predictors for our model. Annual income is likely very correlated with the # of cancer related death rate. However, we need to further explore what kind of model will be best fit for the data. 
-
-```{r}
-plot(dat$AvgHouseholdSize,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "Average household size")
-```
-
-As the plot suggests, there isn't a clear relationship between cancer-related death rate and the average household size. However, furtherwork could help illustrate some latent meanings. 
-
-```{r}
-plot(dat$PercentMarried,dat$TARGET_deathRate,  ylab = "Cancer related death rate", xlab = "Percentage of married person in the County")
-```
-
-It seems that there is a negative association between percent of people married and cancer-related death rate. This seems to be another valuable predictor that we could use in our model. 
-
-These graphs are a brief look into the possible associations within our data set. We need to be careful that some of these relationships might be confounded by other co-variates, We also need to conduct confounding analysis (both classical, and statistical), effect modifier analysis to figure out the nature of the associations. 
 
 ### Look at the state-wide view
-
-```{r}
-dat <- dat %>%
-    mutate(state = str_extract(Geography, "[^,]+$")) %>% # regex to select everything after ','
-    mutate(state = str_trim(state))
-```
 
 ```{r}
 dat %>%
@@ -95,4 +176,71 @@ dat %>%
     coord_flip()
 ```
 
-It appears that there are some potential outliers when studying the relationship between states and average deaths per year due to cancer. Particularly, there may be potential outliers in the data for California, Illinois, and Arizona. We would need to further examine the reasons for such a large deviation from the rest of the data. Additionally, it appears that the more populated states, such as California and New York, have a higher average death rate compared to less populated states like Wyoming. 
+
+# Check-in 2
+## 4. Missing data
+### a.
+Overall, our data contains 19.9869% data missing from private health insurance coverage alone, 4.9885%% data missing from percent of individuals 16 or over that are employed, and 74.9918% data missing from percent of individuals who have some college education between ages of 18 to 24. 
+
+We believe the missing private health insurance data is *MAR* due to the fact that some other counties in the same state have this data, and the individual who created this data set did not include the processing scripts for insurance data. This leads me to believe the most probable reason for these missing data are due to not carefully checking for missing data. Due to it being 19.9869% missing, We don't believe we can simply disregard this data, as such we will need to formally address it via some missing data methods. 
+
+With similar reasoning, we believe the 4.9885% missing data from percentage of employed individuals 16 or over and 74.9918% missing data from percentage of individuals with some college education between ages 18 to 24 are also *MAR*. Especially with the college education, we found external census data on the county-level providing education data, reinforcing the belief that the original data was lost through data processing, perhaps due to issues like attributes not matching on data set joins. 
+
+### b.
+For the 4.9885% missing data from percentage of employed individuals 16 or over and 74.9918% missing data from percentage of individuals with some college education between ages 18 to 24, we will drop the missing data. This is because the employement data is still under the 5% threshold by rule-of-thumb, and should not have a huge impact on biasing our resulting estimates. Due to the large amount of missing data in the education attribute, we will simply drop that attribute, as we do not believe we would be able to get a meaningful analysis using it anyways (with or without missing data methods).
+
+For the 19.9869% of missing insurance data, we will perform a sensitivity analysis. That is, viewing models under complete cases, under imputation (mean, EM, random forest), and under other missing data methods such as inverse proportional weighting. We will also explore these methods conditional on the states, as we believe that counties within a state are more likely to be similar to each other as they are geographically similar, and share state-level policies, which would likely influence the socioeconomic attributes within a county.
+
+## 5. Modelling Approches
+### c. Poisson Regression
+
+### Over-dispersion
+```{r}
+hist(dat$TARGET_deathRate, freq = F, ylim = c(0, 0.04))
+lines(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), dpois(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), lambda = mean(dat$TARGET_deathRate)))
+```
+```{r}
+print(mean(dat$TARGET_deathRate))
+print(var(dat$TARGET_deathRate))
+```
+
+```{r}
+hist(dat$avgAnnCount/dat$popEst2015, freq = F)#, ylim = c(0, 0.04))
+lines(as.integer(min(dat$avgAnnCount/dat$popEst2015)):as.integer(max(dat$avgAnnCount/dat$popEst2015)), dpois(as.integer(min(dat$avgAnnCount/dat$popEst2015)):as.integer(max(dat$avgAnnCount/dat$popEst2015)), lambda = mean(dat$avgAnnCount/dat$popEst2015)))
+```
+```{r}
+mean(dat$avgDeathsPerYear/dat$popEst2015)
+var(dat$avgDeathsPerYear/dat$popEst2015)
+```
+
+```{r}
+hist(dat$incidenceRate, freq = F, ylim = c(0, 0.02))
+lines(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), dpois(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), lambda = mean(dat$incidenceRate)))
+```
+```{r}
+print(mean(dat$incidenceRate))
+print(var(dat$incidenceRate))
+```
+We notice for each of our potential target variables, while the Poisson density roughly fits, they are overdispersed. This suggests the potential of modelling our outcome of interest using an extension of the Poisson model. Due to not having zero-inflated data, this narrows down potentially modelling approaches to the Negative Binomial regression, which should account for over-dispersion, to make sure we do not have overconfident estimates. For these data, we do not need to account for lag as they are all averaged over the same time period for each covariate and outcome respectively. 
+
+We would not need to modify our data at all to perform a Negative Binomial regression as our data is already in counts or rate form. Although one potential modification we might do is see how the regression turns out modelling the rate per 100 000 (our target of interest), and the pure count itself adjusting for population.
+
+### Model fits
+```{r, warning = FALSE}
+# poisson fit
+state_inc_pop_pois <- dat %>% glm(formula = TARGET_deathRate ~ medIncome + State + popEst2015, family=poisson(), data=.)
+summary(state_inc_pop_pois)
+
+# neg bin fit
+state_inc_pop_nb <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015, data=.)
+summary(state_inc_pop_nb)
+```
+
+Here we find that the negative binomial regression has slightly higher standard errors and resulting test statistics compared to the standard Poisson regression. This is as we expected since it suggests that the standard Poisson regression may cause overconfidence in model evaluations, due to the property of $\mathbb{E}[Y] = Var(Y)$ being unsatisfied.
+
+Furthermore, we can interpret the Negative Binomial regression supposing median income is our covariate of interest. For a 1000 dollar increase in median income, a county has an estimated `exp(coef(state_inc_pop_nb)[[2]])` times the incident rate compared to if a county did not have a 1000 dollar increase in median income, on average, holding all other covariates fixed. This was a significant relationship as well, suggesting that median income may be negatively associated with the incidence rate of lung cancer deaths, however this is only a very slight relationship at `exp(coef(state_inc_pop_nb)[[2]])` with these covariates in this model, according to these data.
+
+### d. Survival Analysis
+
+We are not going to incorporate survival analysis into our project. This is because we do not have any time-to-event related relationships in our data. Furthermore, we cannot really reproduce these relationships using a modification of our variables since they are all aggregates over a time period, and so we cannot infer the individual-level observations to re-create time-to-event data.
+ 
