@@ -1,0 +1,41 @@
+---
+title: "BST210 HW8 Project CheckIn 2"
+author: "Group 7: Ryan Wang, Stella Nam, Hongkai Wang"
+output:
+  pdf_document: default
+---
+# Question 1
+
+**Group Number: **7
+
+**Group Name: **Regression Heroes
+
+**Group Members:**Ryan Wang, Stella Nam, Hongkai Wang
+
+# Question 2
+## Part a
+
+Yes, we did a literature review of similar problems relating various cancer outcomes to socioeconomic factors. However, a lot of the studies that looked into the possible influence of socioeconomic factors onto cancer outcomes are fairly recent and it appears that there needs to be more research into this relationship overall. Additionally, a lot of the research in this field was done using data of nations other than the US. 
+
+There was a [**2018 paper published in JAMA**](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2705856) that looked at county-level median incomes and cancer death rates in the US. They used a different dataset, data from the Institute for Health Metrics and Evaluation from 2014 along with the income data from the 2012 US Census Bureau Small Area Income and Poverty Estimates. The data was stratified into low-, medium-, and high-income groups. They used a single- and multiple-mediator model to assess changes in parameter estimates after adding potential mediators other than household income, such as smoking. They also used a multivariate normal regression model for a sensitivity analysis. Although the main questions being posed by this paper is very similar to our project, we will that we can more variables we can consider that potentially influence cancer death rates as well as individual data, which can hopefully confirm the results from this study but also provide more insight into these complex relationships between the covariates. We think the multiple-mediator model might be interesting to include in our project because there are multiple factors and potential mediators that likely result in cancer deaths. We can further study these complex relationships in our data using this model. 
+
+Additionally, there was another paper published in [**Frontiers in 2022**](https://www.frontiersin.org/articles/10.3389/fonc.2022.827028/full) that looks at cancer-free life expectancy trends from 2006-2018 based on income inequalities using German Health Insurance Data. They used a proportional hazard regression model for their statistical analysis. This paper not only looked at cancer risk overall, but they also looked into specific cancer outcomes, such as colon, stomach, and lung cancer based on gender. We feel that we can use the finding and potential factors from this paper such as gender and insurance coverage to assess cancer death rates in our dataset. 
+
+## Part b
+Yes, we received our peers’ and Teaching Team’s reviews of out 1st Project Check-in. 
+
+From our peers, we received a few comments about looking at more biologically-grounded factors such as health conditions and genetics on the risk of cancer deaths. Although we do not think these factors aligned with the purpose of our research questions since we are trying to assess the influence of SES factors, we think it would be interesting if we overlay our results from our analysis to existing literature on cancer outcomes based on genetics or other biological markers at the end. 
+
+There were also a few concerns about the data being generalized to all cancers rather than specific cancers. Based on our prior education knowledge and reviewing the literature, we agree that a lot of cancer outcomes vary greatly based on the specific type of cancer. Some cancers are also more treatable than other, resulting in a lower death rate on average. However, there was also a comment from one of our other reviewers regarding our outcome variable. They correctly identified that the data was specific to lung cancer data rather than cancer generally. Going forward, we will take that into account in our analysis, specific to lung cancer.
+
+
+The peer reviewers also mentioned that we should focus on key variables such as income since socio-economic factors is a very vague. Upon our EDA, we can on focusing on the variables that seem most correlated with cancer death rates overall, which include but are not limited to median income and public coverage. 
+
+Lastly, we did not contact any non-teaching team domain experts because we stated in our first project check-in that we thought it was not necessary for the scope of our project. Upon conducting a literature review and reviewing our peers’ and Teaching Team’s reviews, we stand by this decision. 
+
+# Question 3
+
+# Question 8
+At this moment in our project, we are not trying to reach a publication involving the work or results from this project. However, we agree that our research questions are data are important in the context of the research field of understanding connections between SES and cancer. That being said, if our project ends up resulting in interesting findings, we would be open to the idea of potentially publishing our results in some capacity. 
+
+
