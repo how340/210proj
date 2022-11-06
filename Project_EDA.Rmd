@@ -1,6 +1,8 @@
 ---
 title: "BST210 Project EDA"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 # Exploratory Data Analysis
@@ -203,8 +205,8 @@ library(tidyr)
 library(ggplot2)
 
 #this line is for setting file path on Bruce's home pc. 
-setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
-dat = read_csv("data/cancer_reg.csv")
+#setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
+#dat = read_csv("data/cancer_reg.csv")
 ```
 Linear regression models hold a special position in the world of statistics, as it is one of the oldest, and the most tried-and-true method of models. For the purpose of this project, linear models, both GAM and multiple regression, serve as an valuable and important introduction to the exploration of the dataset. Our data set contains information on the socioeconomic status, lung cancer death rate, demographic, etc. of US counties. If we view cancer death rate as an continuous variable outcome, we can most certainly derive very useful information on the relationship between social factors and the cancer death rate within different US counties. 
 
@@ -440,4 +442,31 @@ Furthermore, we can interpret the Negative Binomial regression supposing median 
 ### d. Survival Analysis
 
 We are not going to incorporate survival analysis into our project. This is because we do not have any time-to-event related relationships in our data. Furthermore, we cannot really reproduce these relationships using a modification of our variables since they are all aggregates over a time period, and so we cannot infer the individual-level observations to re-create time-to-event data.
+
+
+
+## Abstract 
+
+Lung cancer is one of the leading causes of global cancer incidence and mortality, accumulating over 1.8 million deaths each year. Lung cancer has become the second most common forms of cancer diagnosis for both men and women (Thandra et al). Although the incidence rate and mortality rate of lung cancer has been decreasing in the US due to public education and tobacco control policies (De groot et al), a better understanding of the disease within the socialeconomic and demographic context is still required to provide future guidance on combating the prevalent form of cancer. Data from US census, county level reports, and various government agencies were collected to create tabular data on lung cancer death rate, social economic status, demographic information, education level, and medical insurance information on the US county level. The primary goal of the project is to create a explanatory model between social economic status and the lung cancer death rate of each US county. A secondary goal of this project is to predict the political inclination of each county base on the existing data set using logistic regression models. 
+
+Our primary goal would be achieved using two regression models, linear regression and poisson regression. The two methods were chosen due to possible different interpretation of the interested outcome, the lung cancer related death rate of each US county. Comprehensive models from the two methods were constructed and the final models are shown below: 
+
+*insert final model here* 
+
+The comparison of the two models results in the selection of ___ as the final model. We have found several significant factors within the model that provide significant context and utility to increasing health care equity in the United states. There factors and their interpretation are listed below: 
+
+
+*insert table of important factors here. Will include name of covariates, model coefficient, interpretation* 
+
+We also found some additional conclusions without our secondary goals. And these are our findings. 
+
+*conclusion section* 
+We will talk about the potential implication of our findings in a public health context, what future directions that we could take. And any potential shortcomings of our approach. 
+
+
+Citations:
+
+1. Thandra, Krishna Chaitanya et al. “Epidemiology of lung cancer.” Contemporary oncology (Poznan, Poland) vol. 25,1 (2021): 45-52. doi:10.5114/wo.2021.103829
+2. de Groot, P. M., Wu, C. C., Carter, B. W., & Munden, R. F. (2018). The epidemiology of lung cancer. Translational lung cancer research, 7(3), 220–233. https://doi.org/10.21037/tlcr.2018.05.06
+
  
