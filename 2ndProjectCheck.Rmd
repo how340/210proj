@@ -89,7 +89,7 @@ library(viridisLite) # nice colours
 ```
 
 
-# Exploratory Data Analysis
+# Creating data table
 
 ```{r, echo = F}
 dat <- read_csv("data/cancer_reg.csv")
@@ -144,86 +144,6 @@ no_geodat[!complete.cases(no_geodat),] %>%  # keep rows with NAs
 ```
 Interestingly, there is some missing data in the reporting of county employment for residents age 16 and over. We observe more missing data in percentages of county residents with only private healthcare coverage, and missing data in the majority of counties for reports of the percent of county residents between 18 and 24 years old with with some college as their highest attained education. One hypothesis for why there may be a large amount of missing data in educational reporting for 18 to 24 year olds with some college may be because some counties may not have high emphasis on higher education and many individuals in this age range that are pursuing college will probably be in more college-oriented counties.
 
-```{r, echo = FALSE, fig.height = 5, fig.width = 8}
-# NAs grouped by education
-p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
-    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
-    filter(is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
-    ggplot(aes(x = Education, y = Values)) + 
-    geom_boxplot(show.legend = F, outlier.shape = NA) +
-    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
-    theme_bw() + 
-    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
-    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent employed 16 and over")
-    # scale_fill_viridis_d() + 
-    # scale_color_viridis_d() + 
-
-p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
-    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
-    filter(!is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
-    ggplot(aes(x = Education, y = Values)) + 
-    geom_boxplot(show.legend = F, outlier.shape = NA) +
-    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
-    theme_bw() + 
-    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
-    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent employed 16 and over")
-
-gridExtra::grid.arrange(p1a, p1b, ncol = 2)
-```
-```{r, echo = F, fig.height = 5, fig.width = 8}
-# NAs grouped by education
-p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
-    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
-    filter(is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
-    ggplot(aes(x = Education, y = Values)) + 
-    geom_boxplot(show.legend = F, outlier.shape = NA) +
-    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
-    theme_bw() + 
-    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
-    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent some college education 18-24")
-    # scale_fill_viridis_d() + 
-    # scale_color_viridis_d() + 
-
-p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
-    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
-    filter(!is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
-    ggplot(aes(x = Education, y = Values)) + 
-    geom_boxplot(show.legend = F, outlier.shape = NA) +
-    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
-    theme_bw() + 
-    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
-    labs(y = "Percent of adult population", title = "Distribution of Education Among complete some college education 18-24")
-
-gridExtra::grid.arrange(p1a, p1b, ncol = 2)
-```
-
-```{r, fig.height = 5, fig.width = 8, echo = F}
-# NAs grouped by education
-p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
-    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
-    filter(is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
-    ggplot(aes(x = Education, y = Values)) + 
-    geom_boxplot(show.legend = F, outlier.shape = NA) +
-    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
-    theme_bw() + 
-    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
-    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent alone private coverage")
-    # scale_fill_viridis_d() + 
-    # scale_color_viridis_d() + 
-
-p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
-    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
-    filter(!is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
-    ggplot(aes(x = Education, y = Values)) + 
-    geom_boxplot(show.legend = F, outlier.shape = NA) +
-    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
-    theme_bw() + 
-    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
-    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent alone private coverage")
-
-gridExtra::grid.arrange(p1a, p1b, ncol = 2)
-```
-
 ```{r}
 #colMeans(is.na(no_geodat))*100
 ```
@@ -236,23 +156,6 @@ dat_missing <- setdiff(unique(dat$county_name), unique(ed$county_name))
 filter(dat, county_name %in% dat_missing)
 ```
 Here we show some difference in county representation within our two integrated cancer trial and socioeconomic dataset with a dataset of education attainment by county. Notably, a large difference in the counties from both datasets is the inclusino of Puerto Rico. While the education dataset includes Puerto Rico, the cancer trial data set does not. This means this missing data is **MAR** for our primary inference since it depends on a covariate *State* (or **MNAR** for our secondary as county is an outcome), however we will consider our analysis without Puerto Rico as it is a unique situation and not localized to the North American land mass. Other missing cancer data are at the county level, not found in the education dataset, similarly, as we are focused on the cancer data, we will disregard these education data (as we have education data for all cancer-statistic counties we have). 
-
-## Exploring data patterns and modeling
-
-```{r, fig.width=10, fig.height=10, echo = F}
-#pairs(dat %>% select(where(is.numeric)))
-```
-
-
-### Look at the state-wide view
-
-```{r, echo = F}
-dat %>%
-    ggplot(aes(x = state, y = avgDeathsPerYear, colour = state, fill = state)) +
-    geom_boxplot() + 
-    theme_bw() + 
-    coord_flip()
-```
 
 
 ## 4. Missing data
