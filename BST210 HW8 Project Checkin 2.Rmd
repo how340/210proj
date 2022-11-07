@@ -15,31 +15,101 @@ output:
 # Question 2
 ## Part a
 
-Yes, we did a literature review of similar problems relating various cancer outcomes to socioeconomic factors. However, a lot of the studies that looked into the possible influence of socioeconomic factors onto cancer outcomes are fairly recent and it appears that there needs to be more research into this relationship overall. Additionally, a lot of the research in this field was done using data of nations other than the US. 
+Yes, we did a literature review of similar problems relating various cancer outcomes to socioeconomic factors. However, a lot of the studies that looked into the possible influence of socioeconomic factors on cancer outcomes are fairly recent and it appears that there needs to be more research into this relationship overall. Additionally, a lot of the research in this field was done using data from nations other than the US. 
 
-There was a [**2018 paper published in JAMA**](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2705856) that looked at county-level median incomes and cancer death rates in the US. They used a different dataset, data from the Institute for Health Metrics and Evaluation from 2014 along with the income data from the 2012 US Census Bureau Small Area Income and Poverty Estimates. The data was stratified into low-, medium-, and high-income groups. They used a single- and multiple-mediator model to assess changes in parameter estimates after adding potential mediators other than household income, such as smoking. They also used a multivariate normal regression model for a sensitivity analysis. Although the main questions being posed by this paper is very similar to our project, we will that we can more variables we can consider that potentially influence cancer death rates as well as individual data, which can hopefully confirm the results from this study but also provide more insight into these complex relationships between the covariates. We think the multiple-mediator model might be interesting to include in our project because there are multiple factors and potential mediators that likely result in cancer deaths. We can further study these complex relationships in our data using this model. 
+There was a [**2018 paper published in JAMA**](https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2705856) that looked at county-level median incomes and cancer death rates in the US. They used a different dataset, data from the Institute for Health Metrics and Evaluation from 2014 along with the income data from the 2012 US Census Bureau Small Area Income and Poverty Estimates. The data were stratified into low-, medium-, and high-income groups. They used a single- and multiple-mediator model to assess changes in parameter estimates after adding potential mediators other than household income, such as smoking. They also used a multivariate normal regression model for sensitivity analysis. Although the main questions being posed by this paper is very similar to our project, we will that we can more variables we can consider that potentially influence cancer death rates as well as individual data, which can hopefully confirm the results from this study also provide more insight into these complex relationships between the covariates. We think the multiple-mediator model might be interesting to include in our project because there are multiple factors and potential mediators that likely result in cancer deaths. We can further study these complex relationships in our data using this model. 
 
-Additionally, there was another paper published in [**Frontiers in 2022**](https://www.frontiersin.org/articles/10.3389/fonc.2022.827028/full) that looks at cancer-free life expectancy trends from 2006-2018 based on income inequalities using German Health Insurance Data. They used a proportional hazard regression model for their statistical analysis. This paper not only looked at cancer risk overall, but they also looked into specific cancer outcomes, such as colon, stomach, and lung cancer based on gender. We feel that we can use the finding and potential factors from this paper such as gender and insurance coverage to assess cancer death rates in our dataset. 
+Additionally, there was another paper published in [**Frontiers in 2022**](https://www.frontiersin.org/articles/10.3389/fonc.2022.827028/full) that looks at cancer-free life expectancy trends from 2006-2018 based on income inequalities using German Health Insurance Data. They used a proportional hazard regression model for their statistical analysis. This paper not only looked at cancer risk overall, but also looked into specific cancer outcomes, such as colon, stomach, and lung cancer based on gender. We feel that we can use the finding and potential factors from this paper such as gender and insurance coverage to assess cancer death rates in our dataset. 
+
+There was a [**2018 paper published in PLoS One**][https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5819792/] specifically looking at lung cancer and socioeconomic status. This study used a pooled analysis of different case-control studies. Here, they looked at data from Europe and Canada. They used an unconditional logistic regression model as well as random-effect meta-regression models to assess this association. The paper concludes that SES is a risk factor for lung cancer after adjustment for smoking behavior. However, a major limitation of this study was that they were not able to adequately control smoking behavior, which is one of the leading causes of lung cancer. Although the conclusions from the study are interesting as the authors are studying topics similar to our project topic but in different countries, the models and methods used in this study do not apply to our project.
 
 ## Part b
-Yes, we received our peers’ and Teaching Team’s reviews of out 1st Project Check-in. 
 
-From our peers, we received a few comments about looking at more biologically-grounded factors such as health conditions and genetics on the risk of cancer deaths. Although we do not think these factors aligned with the purpose of our research questions since we are trying to assess the influence of SES factors, we think it would be interesting if we overlay our results from our analysis to existing literature on cancer outcomes based on genetics or other biological markers at the end. 
+Yes, we received our peers’ and the Teaching Team’s reviews of our 1st Project Check-in. 
 
-There were also a few concerns about the data being generalized to all cancers rather than specific cancers. Based on our prior education knowledge and reviewing the literature, we agree that a lot of cancer outcomes vary greatly based on the specific type of cancer. Some cancers are also more treatable than other, resulting in a lower death rate on average. However, there was also a comment from one of our other reviewers regarding our outcome variable. They correctly identified that the data was specific to lung cancer data rather than cancer generally. Going forward, we will take that into account in our analysis, specific to lung cancer.
+From our peers, we received a few comments about looking at more biologically-grounded factors such as health conditions and genetics on the risk of cancer deaths. Although we do not think these factors aligned with the purpose of our research questions since we are trying to assess the influence of SES factors, we think it would be interesting if we overlay our results from our analysis to the existing literature on cancer outcomes based on genetics or other biological markers at the end. 
 
-The peer reviewers also mentioned that we should focus on key variables such as income since socioeconomic factors is a very vague. Upon our EDA, we can on focusing on the variables that seem most correlated with cancer death rates overall, which include but are not limited to median income and public coverage. 
+There were also a few concerns about the data being generalized to all cancers rather than specific cancers. Based on our prior education knowledge and reviewing the literature, we agree that a lot of cancer outcomes vary greatly based on the specific type of cancer. Some cancers are also more treatable than others, resulting in a lower death rate on average. However, there was also a comment from one of our other reviewers regarding our outcome variable. They correctly identified that the data was specific to lung cancer data rather than cancer generally. Going forward, we will take that into account in our analysis, specific to lung cancer.
 
-From the teaching team, we had a comment about whether we wanted to predict cancer-related death or consider the association between cancer-related death and one or a limited number of exposures. Upon doing more research into lung cancer, we think it would be more appropriate to explore the latter. This is because there is already strong evidence in the literature suggesting that lung cancer has a strong association with environmental factors such as smoking. These factors are not included in our data, nor is it the purpose of our project. Additionally, the socioeconomic influences are not well understood with lung cancer incidence and death. Thus, trying to understand the association between cancer deaths and certain socioeconomic factors is something we are trying to explore with our project. 
+The peer reviewers also mentioned that we should focus on key variables such as income since socioeconomic factors are very vague. Upon our EDA, we can on focusing on the variables that seem most correlated with cancer death rates overall, which include but are not limited to median income, median age, and public coverage. 
+
+From the teaching team, we had a comment about whether we wanted to predict cancer-related death or consider the association between cancer-related death and one or a limited number of exposures. Upon doing more research into lung cancer, we think it would be more appropriate to explore the latter. This is because there is already strong evidence in the literature suggesting that lung cancer has a strong association with environmental factors such as smoking. These factors are not included in our data, nor is it the purpose of our project. Additionally, socioeconomic influences are not well understood in lung cancer incidence and death. Thus, trying to understand the association between cancer deaths and certain socioeconomic factors is something we are trying to explore with our project. 
 
 Lastly, we did not contact any non-teaching team domain experts because we stated in our first project check-in that we thought it was not necessary for the scope of our project. Upon conducting a literature review and reviewing our peers’ and Teaching Team’s reviews, we stand by this decision. 
 
 # Question 3
 
+At the moment, we do not have too many changes we want to make to our analysis plan. Changes to our plan is shown in \textcolor{blue}{blue}.
+
+**Exploratory Data Analysis:**
+
+* Better understand the structure and complexity of our data set through str and summary functions in R
+* Check for missing data points categorized by different covariates (by employment status of different age groups)
+* Explore data patterns and modeling – Check for correlation between different socioeconomic status determining variables and cancer prevalence through a pairs plot.
+  * One of the variables of interest of our project is the effect of region/state on cancer prevalence. Graph this relationship to observe for any patterns.
+  
+**Primary Inference Problem:**
+
+* Poisson regression (within a generalized linear framework) will be our main modeling approach for statistical inference due to our primary outcome being rate/count data \textcolor{blue}{on lung cancer death.}
+* With 33 covariates of interest, we will need to employ model selection techniques, potentially finding a good in-between for various automated methods and integrating domain information
+* Once we have identified some covariates of interest, we will perform various smoothing methods in order to determine the relative correlations in data
+  * \textcolor{blue}{Currently, based on our EDA and project checkins, median income, median age, and public health coverage seem like good potential factors we can include as SES. Additionally, we are continually updating our dataset with other factors we believe are revelant to our primary and secondary questions such as data on politcal preference and education attainment data.}
+* Data cleaning and computing additional predictors (e.g., regions, climate... )
+  * \textcolor{blue}{Given that we have a lot of missing data, especially for the college education section, we will discard this data as it will be difficult to address and work with data where so much of it is missing. (more  on this in question 4)}
+  * \textcolor{blue}{For incurace data where we have around 20 percent missing data, we will perform a sensitivity analysis by viewing models under complete cases, under imputation, and under other missing data methods such as inverse proportional weighting.}
+* As our data is on the county-level, we aim to add a dimension to our analysis by aggregating these data onto the state-level, which would allow us to study state-by-state differences in socioeconomic conditions and cancer outcomes
+* Create comprehensive visualization of our demographic data to illustrate
+differences between US counties and states
+* We will explore different imputation techniques to adjust for the 3046 incomplete observations in these data
+* Identify and adjust for potential confounders (on the association of SES to cancer prevalence) such as, but not limited to, county and income.
+* For any of these covariates which we are not interested in interpreting, we aim to adjust for them flexibly using splines/GAMs (and if not needed, we will keep using linear terms)
+
+**Secondary Inference Problem:**
+
+* We are potentially interested in looking at state-level and county-level differences in demographics and insurance status
+* Here we will employ multinomial models in order to model the probability of some set of socioeconomic conditions and cancer outcomes being in a given county or state
+* \textcolor{blue}{We are also interested in looking at the relatonship between socioeconomic status and political tendencies political preference of different demographic groups. We will find an additional data on voting outcomes from a recent US election and merge that with our current dataset. Since the US elections use a bipartisan system, we can use logistic linear regression to understand this relationship.}
+
+**Predictive Problem:**
+
+* Aside from the inference problem, we are also interested in the prediction problem and if there is time, we will explore the performance of our generalized linear models on prediction metrics (accuracy, AUC, etc.)
+* We will also explore how penalized models (LASSO, Ridge, Elastic Net) and traditional ML algorithms (random forests/basic nnets for primary analysis, RFs/KNN/nnets/etc. for secondary analysis tasks) compare with the inference models we previously built
+* Here we are also interested in exploring how the number of predictors can correlate with generalizability in these 3 forms of models
+
 # Question 6
 ## Part b
+**Introduction/Background:**
+
+Lung cancer is one of the leading causes of global cancer incidence and mortality, accumulating over 1.8 million deaths each year. Lung cancer has become the second most common form of cancer diagnosis for both men and women (Thandra et al). The death rate of lung cancer is almost equal to the death rate of prostate, breast, and colon cancer combined in the United States (Dela Cruz and Tanoue). 
+
+One of the known leading causes of lung cancer is cigarette and tobacco smoking. Not only does exposure to smoking suggest a strong link with lung cancer onset, but first- and second-hand exposure to tobacco smoke can have a genetic influence on individuals. The susceptibility of genetic markers to lung carcinogens as well as acquired epigenetic polymorphisms can drastically increase one's chances of being diagnosed with lung cancer. A family history of cancer, especially lung cancer, can also increase the risk for lung cancer in both smokers and non-smokers (Dela Cruz and Tanoue). 
+
+Since the 1970s, there has been a drastic decrease in tobacco use in the US. 
+Additionally, the exacerbated efforts to find genetic influences associated with lung cancer in recent years and the push for scientific insight into chemotherapy and pharmaceutical drugs to potential lung cancer treatments, have helped healthcare professionals find better ways to target and improve lung cancer prognosis (Lemjabbar-Alaoui et al). Therefore, the incidence rate and mortality rate of lung cancer have been decreasing in the US due to public education and tobacco control policies (De groot et al). However, a better understanding of the disease within the socioeconomically and demographic context is still required to provide future guidance on combating the prevalent form of cancer. With lower tobacco smoking rates in the US and an increasing prevalence of lung cancer in non-smokers, environmental factors as well as socioeconomic influences need to be further investigated.
+
+**Data description and motivation:**
+
+Data from the US census, county-level reports, and various government agencies were collected to create tabular data on lung cancer death rate, social economic status, demographic information, education level, and medical insurance information at the US county level. Specifically, the data used and analyzed is from [“OLS Regression Challenge - dataset by nrippner | data.world”](https://data.world/nrippner/ols-regression-challenge), which aggregates socioeconomic and clinical data from census.gov, clinicaltrials.gov, and cancer.gov. These cancer outcomes data were aggregated from cancer trials from 01/01/2010 through 06/01/2016 and socioeconomic and demographic data were aggregated from 2013 U.S. census data. Additionally, data from the [United States Department of Agriculture (USDA)](https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/) was used to assess educational attainment as a potential factor associated with socioeconomic status. 
+
+Given the lack of research on socioeconomic factors on cancer prevalence in the United States specifically, the dataset seemed appropriate for providing insight into the potential links between socioeconomic status and cancer overall. The primary goal of this study is to create an explanatory model between social economic status and the lung cancer death rate of each US county. A secondary goal of this project is to predict the political inclination of each county base on the existing data set using logistic regression models. A separate data set from [Politico](https://www.politico.com/2016-election/results/map/president/) was merged with the data from the US census to assess the secondary questions. 
+
+**Citations**
+
+1. Thandra, Krishna Chaitanya et al. “Epidemiology of lung cancer.” Contemporary oncology (Poznan, Poland) vol. 25,1 (2021): 45-52. doi:10.5114/wo.2021.103829
+ 
+2. Dela Cruz CS, Tanoue LT, Matthay RA. Lung cancer: epidemiology, etiology, and prevention. Clin Chest Med. 2011 Dec;32(4):605-44. doi: 10.1016/j.ccm.2011.09.001. PMID: 22054876; PMCID: PMC3864624.
+
+3. Lemjabbar-Alaoui H, Hassan OU, Yang YW, Buchanan P. Lung cancer: Biology and treatment options. Biochim Biophys Acta. 2015 Dec;1856(2):189-210. doi: 10.1016/j.bbcan.2015.08.002. Epub 2015 Aug 19. PMID: 26297204; PMCID: PMC4663145.
+
+4. de Groot, P. M., Wu, C. C., Carter, B. W., & Munden, R. F. (2018). The epidemiology of lung cancer. Translational lung cancer research, 7(3), 220–233. https://doi.org/10.21037/tlcr.2018.05.06
 
 ## Part c
+
+**Research and Analysis Methods:**
+
+The project will 
+
+**Note:** We did not feel that we were ready to outline any results or discussion yet in our project.
 
 # Question 8
 At this moment in our project, we are not trying to reach a publication involving the work or results from this project. However, we agree that our research questions are data are important in the context of the research field of understanding connections between SES and cancer. That being said, if our project ends up resulting in interesting findings, we would be open to the idea of potentially publishing our results in some capacity. 
