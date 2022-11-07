@@ -93,7 +93,7 @@ library(viridisLite) # nice colours
 
 ```{r, echo = F}
 dat <- read_csv("data/cancer_reg.csv")
-str(dat)
+#str(dat)
 #summary(dat)
 ed <- read_csv("data/Education.csv")
 states <- read_csv("data/50_states.csv") %>% 
@@ -192,16 +192,18 @@ Our main interest in the data set is whether we can derive some useful relations
 
 Several co-variates from our data is specifically useful in defining the social-economic status of a region. First, median income is a key predictor as it is often used by economists in their evaluation of the wealthiness of a region. Second, median age is an important demographic descriptor in two sense. Median age can describe both the likelihood to get lung cancer (older people are more susceptible to cancer) and the wealth level of the county (older people are more likely to be richer). Third, percentage of white people in each county could also be useful in defining the social-economic status of the region, as historically, white neighborhoods are more likely to be better funded, and thus result in better healthcare conditions. With these indicators in mind, let's first explore a multiple linear regression model. 
 
-#### Model assumptions: 
+#### Model assumptions
+
 Since our data are sourced from census, and goverment sources, we have reason to believe that each predictor variables following the central limiting theorem (each covariate entry is the mean over multiple years samples), and the LINE assumptions should be met. 
 
-#### data transformation and cleaning: 
+#### data transformation and cleaning
+
+Let's check to see if we need to any additional data wrangling.
 
 ```{r, echo = F}
-hist(dat$medIncome)
-hist(dat$PctWhite)
 hist(dat$MedianAge, breaks = 100)
 ```
+
 we see that there are some insanely high median age here. These has to be errors in data collection or imputing process as it is improbable to have median ages that high. let's remove these rows of data for now. 
 
 ```{r, echo = F}
