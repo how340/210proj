@@ -1,15 +1,17 @@
 ---
-title: "project update 2"
-author: "Hongkai Wang"
-date: "2022-11-07"
+title: "BST 210 Project Check-in 2"
 output:
   pdf_document: default
   html_document: default
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+#### Note: For questions 4-5 inclusive, please refer to the other PDF containing Q7/our appendix for all the necessary code, graphs, statistical analyses. 
 
 # Question 1
 
@@ -17,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **Group Name: **Regression Heroes
 
-**Group Members:**Ryan Wang, Stella Nam, Hongkai Wang
+**Group Members:** Ryan Wang, Stella Nam, Hongkai Wang
 
 # Question 2
 ## Part a
@@ -82,25 +84,24 @@ differences between US counties and states
 * Aside from the inference problem, we are also interested in the prediction problem and if there is time, we will explore the performance of our generalized linear models on prediction metrics (accuracy, AUC, etc.)
 * We will also explore how penalized models (LASSO, Ridge, Elastic Net) and traditional ML algorithms (random forests/basic nnets for primary analysis, RFs/KNN/nnets/etc. for secondary analysis tasks) compare with the inference models we previously built
 * Here we are also interested in exploring how the number of predictors can correlate with generalizability in these 3 forms of models
-```{r, echo = F}
+
+```{r, echo = F, include=F}
 library(tidyverse)
 library(stringr)
 library(viridisLite) # nice colours
 ```
 
 
-# Creating data table
-
-```{r, echo = F}
+```{r, echo = F, include = F}
 dat <- read_csv("data/cancer_reg.csv")
-#str(dat)
+str(dat)
 #summary(dat)
 ed <- read_csv("data/Education.csv")
 states <- read_csv("data/50_states.csv") %>% 
     add_row(State="District of Columbia", Abbr="DC", `State Capital`="Washington", Region="East")
 ```
 
-```{r, echo = F}
+```{r, echo = F, include=F}
 # get county names
 dat <- dat %>% 
     mutate(county_name = str_split(Geography, ",") %>% map_chr(., 1))%>%
@@ -128,7 +129,99 @@ dat <- ed %>%
     distinct()
 ```
 
-## How much missing data is there?
+
+```{r, echo = FALSE, fig.height = 5, fig.width = 8, include= F}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent employed 16 and over")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent employed 16 and over")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+```{r, echo = F, fig.height = 5, fig.width = 8, include = F}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent some college education 18-24")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete some college education 18-24")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+
+```{r, fig.height = 5, fig.width = 8, echo = F, include= F}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent alone private coverage")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent alone private coverage")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+
+
+```{r, echo = F, include=F}
+ed_missing <- setdiff(unique(ed$county_name), unique(dat$county_name))
+filter(ed, county_name %in% ed_missing)
+dat_missing <- setdiff(unique(dat$county_name), unique(ed$county_name))
+filter(dat, county_name %in% dat_missing)
+```
+
+
+## 4. Missing data
+
+From our EDA, we explored how much missing data there is:
 
 ```{r, echo = F}
 no_geodat <- dat %>% select(-c("Geography", "State Capital", "Region", "state", "State", "county_name", "binnedInc")) # no missing counties
@@ -142,31 +235,17 @@ no_geodat[!complete.cases(no_geodat),] %>%  # keep rows with NAs
     # scale_color_viridis_d() + 
     theme(axis.text.x = element_blank())
 ```
+
 Interestingly, there is some missing data in the reporting of county employment for residents age 16 and over. We observe more missing data in percentages of county residents with only private healthcare coverage, and missing data in the majority of counties for reports of the percent of county residents between 18 and 24 years old with with some college as their highest attained education. One hypothesis for why there may be a large amount of missing data in educational reporting for 18 to 24 year olds with some college may be because some counties may not have high emphasis on higher education and many individuals in this age range that are pursuing college will probably be in more college-oriented counties.
 
-```{r}
-#colMeans(is.na(no_geodat))*100
-```
-
-
-```{r, echo = F}
-ed_missing <- setdiff(unique(ed$county_name), unique(dat$county_name))
-filter(ed, county_name %in% ed_missing)
-dat_missing <- setdiff(unique(dat$county_name), unique(ed$county_name))
-filter(dat, county_name %in% dat_missing)
-```
-Here we show some difference in county representation within our two integrated cancer trial and socioeconomic dataset with a dataset of education attainment by county. Notably, a large difference in the counties from both datasets is the inclusino of Puerto Rico. While the education dataset includes Puerto Rico, the cancer trial data set does not. This means this missing data is **MAR** for our primary inference since it depends on a covariate *State* (or **MNAR** for our secondary as county is an outcome), however we will consider our analysis without Puerto Rico as it is a unique situation and not localized to the North American land mass. Other missing cancer data are at the county level, not found in the education dataset, similarly, as we are focused on the cancer data, we will disregard these education data (as we have education data for all cancer-statistic counties we have). 
-
-
-## 4. Missing data
-### a.
+### A.
 Overall, our data contains 19.9869% data missing from private health insurance coverage alone, 4.9885%% data missing from percent of individuals 16 or over that are employed, and 74.9918% data missing from percent of individuals who have some college education between ages of 18 to 24. 
 
 We believe the missing private health insurance data is *MAR* due to the fact that some other counties in the same state have this data, and the individual who created this data set did not include the processing scripts for insurance data. This leads me to believe the most probable reason for these missing data are due to not carefully checking for missing data. Due to it being 19.9869% missing, We don't believe we can simply disregard this data, as such we will need to formally address it via some missing data methods. 
 
 With similar reasoning, we believe the 4.9885% missing data from percentage of employed individuals 16 or over and 74.9918% missing data from percentage of individuals with some college education between ages 18 to 24 are also *MAR*. Especially with the college education, we found external census data on the county-level providing education data, reinforcing the belief that the original data was lost through data processing, perhaps due to issues like attributes not matching on data set joins. 
 
-### b.
+### B.
 For the 4.9885% missing data from percentage of employed individuals 16 or over and 74.9918% missing data from percentage of individuals with some college education between ages 18 to 24, we will drop the missing data. This is because the employement data is still under the 5% threshold by rule-of-thumb, and should not have a huge impact on biasing our resulting estimates. Due to the large amount of missing data in the education attribute, we will simply drop that attribute, as we do not believe we would be able to get a meaningful analysis using it anyways (with or without missing data methods).
 
 For the 19.9869% of missing insurance data, we will perform a sensitivity analysis. That is, viewing models under complete cases, under imputation (mean, EM, random forest), and under other missing data methods such as inverse proportional weighting. We will also explore these methods conditional on the states, as we believe that counties within a state are more likely to be similar to each other as they are geographically similar, and share state-level policies, which would likely influence the socioeconomic attributes within a county.
@@ -192,19 +271,20 @@ Our main interest in the data set is whether we can derive some useful relations
 
 Several co-variates from our data is specifically useful in defining the social-economic status of a region. First, median income is a key predictor as it is often used by economists in their evaluation of the wealthiness of a region. Second, median age is an important demographic descriptor in two sense. Median age can describe both the likelihood to get lung cancer (older people are more susceptible to cancer) and the wealth level of the county (older people are more likely to be richer). Third, percentage of white people in each county could also be useful in defining the social-economic status of the region, as historically, white neighborhoods are more likely to be better funded, and thus result in better healthcare conditions. With these indicators in mind, let's first explore a multiple linear regression model. 
 
-#### Model assumptions
-
+#### Model assumptions: 
 Since our data are sourced from census, and goverment sources, we have reason to believe that each predictor variables following the central limiting theorem (each covariate entry is the mean over multiple years samples), and the LINE assumptions should be met. 
 
-#### data transformation and cleaning
-
-Let's check to see if we need to any additional data wrangling.
+#### data transformation and cleaning: 
 
 ```{r, echo = F}
+hist(dat$medIncome)
+
+hist(dat$PctWhite)
+
 hist(dat$MedianAge, breaks = 100)
 ```
 
-we see that there are some insanely high median age here. These has to be errors in data collection or imputing process as it is improbable to have median ages that high. let's remove these rows of data for now. 
+We see that there are some insanely high median age here. These has to be errors in data collection or imputing process as it is improbable to have median ages that high. let's remove these rows of data for now. 
 
 ```{r, echo = F}
 dat = dat %>% filter(MedianAge <= 100)
@@ -216,58 +296,19 @@ The other two variables are skewed, but they should be workable. I am not normal
 
 #### model fitting:
 
-```{r, echo = F}
-mod1 = lm(data = dat, TARGET_deathRate ~ medIncome + MedianAge + PctWhite)
-summary(mod1)
-```
+Based on the model summary (under the "model fitting" subtitle in Q7), we can see that median age is not a significant predictor of lung cancer death rate itself, which is a bit surprising based on previous assumptions. However, it could act still act as a confounder or effect modifier for our model. At the same time, it is good to see that both median income and the percentage of white population within a county is significantly correlated with lung cancer death rate. However, as previously illustrated, median age could also be a confounder to median income. Thus, let's quickly do some tests on whether median age is a confounder here (refer to second chunk of code under "model fitting" subtitle in Q7)
 
-Based on the model summary, we can see that median age is not a significant predictor of lung cancer death rate itself, which is a bit surprising based on previous assumptions. However, it could act still act as a confounder or effect modifier for our model. At the same time, it is good to see that both median income and the percentage of white population within a county is significantly correlated with lung cancer death rate. However, as previously illustrated, median age could also be a confounder to median income. Thus, let's quickly do some tests on whether median age is a confounder here. 
-
-```{r, echo = F}
-mod1.1 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite)
-summary(mod1.1)
-anova(mod1.1, mod1)
-```
-
-We see that removing median age doesn't affect the coefficients of the two other covariates at all. And LRT result supports this finding. 
-
-```{r, echo = F}
-mod1.2 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + medIncome*MedianAge)
-summary(mod1.2)
-anova(mod1.2, mod1)
-
-mod1.3 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + PctWhite*MedianAge)
-summary(mod1.3)
-anova(mod1.3, mod1)
-```
-
+We see that removing median age doesn't affect the coefficients of the two other covariates at all. And LRT result supports this finding (refer to third chunk of code under "model fitting" subtitle in Q7). 
 
 Unfortunately, we can see that median age doesn't really play any part as the effect modifier of median income or percentage of white population in the model. At this point, we can decide that for the linear model, we can clearly define the two core descriptor of social economic status is median income and percentage of white population. let's expand a bit more here. First, I will include the precentage of white, black, asian, and other race percentage into the model to see if we can increase the predictive power of the model. 
 
-```{r, echo = F}
-mod1.4 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctBlack + PctAsian + PctOtherRace)
-summary(mod1.4)
-```
+Based on the summary function of mod1.4 (refer to Q7 appendix), we see that the adjusted R-squared value of model 1.4 is higher than model 1.3 and it is beneficial to include a fuller description of the racial distribution. However, we can also see that the Asian and Black percentages are not very significant. By definition, there should be some interactions between these percentages, and it is worth it to check it out. 
 
-We see that the adjusted R-squared value of model 1.4 is higher than model 1.3 and it is beneficial to include a fuller description of the racial distribution. However, we can also see that the Asian and Black percentages are not very significant. By definition, there should be some interactions between these percentages, and it is worth it to check it out. 
+We see that the value of PctBlack and PctWhite are strongly negatively correlated (with value -0.8312116), and the other two percentages are weakly correlated (with values -0.2658648 for PctAsian vs. PctWhite, and -0.2331931 for PctOtherRace and PctWhite). Thus, we should remove PctBlack from the model to reduce colinearity. 
 
-```{r}
-cor(dat$PctAsian, dat$PctWhite)
-cor(dat$PctBlack, dat$PctWhite)
-cor(dat$PctOtherRace, dat$PctWhite)
-```
+Based on the summary function of mod1.5 (model with PctBlack removed), after removing the PctBlack covariate, we see that there is a significant increase in adjusted R-squared value to mod1.1(baseline) and LRT results suggest the models are significantly different from each other with p value < 2.2e-16 (reject null hypothesis). Let's take another look at the median income covariates again. My main interest here is that whether a quadratic term would benefit our model, as a income could have diminishing return effect on lung cancer prevention/death rate. 
 
-We see that the value of PctBlack and PctWhite are strongly negatively correlated, and the other two percentages are weakly correlated. Thus, we should remove PctBlack from the model to reduce colinearity. 
-
-```{r, echo = F}
-mod1.5 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctAsian + PctOtherRace)
-summary(mod1.5)
-anova(mod1.5, mod1.1)
-```
-
-After removing the PctBlack covariate, we see that there is a significant increase in adjusted R-squared value to mod1.1(baseline) and LRT results suggest the models are significantly different from each other. Let's take another look at the median income covariates again. My main interest here is that whether a quadratic term would benefit our model, as a income could have diminishing return effect on lung cancer prevention/death rate. 
-
-```{r, echo = F}
+```{r, echo = F, include=F}
 mod1.6 = lm(data = dat, TARGET_deathRate ~ medIncome)
 summary(mod1.6)
 mod1.6.1 = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2))
@@ -276,19 +317,22 @@ anova(mod1.6, mod1.6.1)
 
 predict = data.frame(TARGET_deathRate = predict(mod1.6.1, dat), medIncome = dat$medIncome)
 
+```
+
+```{r, echo = F}
 dat %>% ggplot(aes(medIncome, TARGET_deathRate)) + geom_point() + geom_smooth(method = "lm") + geom_line(data = predict, aes(medIncome,TARGET_deathRate ), color = "red")
 ```
 
-Judging from summary output, the quadratic model performs better than the purely linear model (based on adjusted R-squared value) and the two models are statistically different. However, a visual inspection of the data doesn't really show that the quadratic model is significantly better. At this point, we decide to keep the quadratic term due to the diagnostic stats. 
+Judging from summary output of mod1.6.1 and mod1.6, the quadratic model performs better than the purely linear model (based on adjusted R-squared value) and the two models are statistically different (the LRT test resulted in p < 2.2e-16, so we reject the null hypothesis). However, a visual inspection of the data doesn't really show that the quadratic model is significantly better. At this point, we decide to keep the quadratic term due to the diagnostic stats. 
 
-We now have this following core model: 
-```{r, echo = F}
+We now have this following core model: mod1_core = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2)+ PctWhite + PctAsian + PctOtherRace)
+```{r, echo = F, include=F}
 mod1_core = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2)+ PctWhite + PctAsian + PctOtherRace)
 summary(mod1_core)
 
 ```
 
-let's evaluate the residual diagnostic to confirm the model's validity. 
+The residual diagnostic was evaluated to confirm the model's validity. 
 
 
 ```{r, echo = F}
@@ -335,7 +379,7 @@ dat = dat %>% mutate(multi = case_when(TARGET_deathRate < 150 ~ 1, TARGET_deathR
 
 
 
-```{r, echo = F}
+```{r, echo = F, include=F}
 library(nnet)
 mod2.1 <- multinom(multi ~ medIncome + I(medIncome ^2), data = dat)
 summary(mod2.1)
@@ -347,13 +391,16 @@ points(mod2.1$fitted.values[,2][order(dat$medIncome)] ~ sort(dat$medIncome), typ
 points(mod2.1$fitted.values[,3][order(dat$medIncome)]~sort(dat$medIncome), type="l", col="green")
 ```
 
-we see that as median income increases, the county is much more likely to fall into the category 1, which is county with low lung cancer death rate. We can do the same with percentage of white citizens in the county as well. 
+We see that as median income increases, the county is much more likely to fall into the category 1, which is county with low lung cancer death rate. We can do the same with percentage of white citizens in the county as well. 
 
+```{r, echo=F, include=F}
+mod2.2 <- multinom(multi ~ PctWhite , data = dat)
+summary(mod2.2)
+```
 
 
 ```{r, echo = F}
-mod2.2 <- multinom(multi ~ PctWhite , data = dat)
-summary(mod2.2)
+
 
 
 plot(mod2.2$fitted.values[,1][order(dat$PctWhite)] ~ sort(dat$PctWhite), type="l", col="dodgerblue", xlab=c("Percentage of white residents"), ylab="Predicted Probability", ylim=c(0,1))
@@ -379,7 +426,7 @@ Additional data wrangling is required before we move forward with the Logistic/m
 hist(dat$TARGET_deathRate, freq = F, ylim = c(0, 0.04))
 lines(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), dpois(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), lambda = mean(dat$TARGET_deathRate)))
 ```
-```{r, echo = F}
+```{r}
 print(mean(dat$TARGET_deathRate))
 print(var(dat$TARGET_deathRate))
 ```
@@ -397,7 +444,7 @@ var(dat$avgDeathsPerYear/dat$popEst2015)
 hist(dat$incidenceRate, freq = F, ylim = c(0, 0.02))
 lines(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), dpois(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), lambda = mean(dat$incidenceRate)))
 ```
-```{r, echo = F}
+```{r}
 print(mean(dat$incidenceRate))
 print(var(dat$incidenceRate))
 ```
@@ -406,17 +453,8 @@ We notice for each of our potential target variables, while the Poisson density 
 We would not need to modify our data at all to perform a Negative Binomial regression as our data is already in counts or rate form. Although one potential modification we might do is see how the regression turns out modelling the rate per 100 000 (our target of interest), and the pure count itself adjusting for population.
 
 ### Model fits
-```{r, warning = FALSE, echo = F}
-# poisson fit
-state_inc_pop_pois <- dat %>% glm(formula = TARGET_deathRate ~ medIncome + State + popEst2015, family=poisson(), data=.)
-summary(state_inc_pop_pois)
 
-# neg bin fit
-state_inc_pop_nb <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015, data=.)
-summary(state_inc_pop_nb)
-```
-
-Here we find that the negative binomial regression has slightly higher standard errors and resulting test statistics compared to the standard Poisson regression. This is as we expected since it suggests that the standard Poisson regression may cause overconfidence in model evaluations, due to the property of $\mathbb{E}[Y] = Var(Y)$ being unsatisfied.
+Please refer to the chunk of code under the "Model fits" subtitle in the Q7 appendix. Here we find that the negative binomial regression has slightly higher standard errors and resulting test statistics compared to the standard Poisson regression. This is as we expected since it suggests that the standard Poisson regression may cause overconfidence in model evaluations, due to the property of $\mathbb{E}[Y] = Var(Y)$ being unsatisfied.
 
 Furthermore, we can interpret the Negative Binomial regression supposing median income is our covariate of interest. For a 1000 dollar increase in median income, a county has an estimated `exp(coef(state_inc_pop_nb)[[2]])` times the incident rate compared to if a county did not have a 1000 dollar increase in median income, on average, holding all other covariates fixed. This was a significant relationship as well, suggesting that median income may be negatively associated with the incidence rate of lung cancer deaths, however this is only a very slight relationship at `exp(coef(state_inc_pop_nb)[[2]])` with these covariates in this model, according to these data.
 
