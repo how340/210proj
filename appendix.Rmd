@@ -1,24 +1,29 @@
 ---
-title: "BST210 Project appendix"
+title: "BST210 Project Checkin2 Question 7 (Appendix)"
 output:
   pdf_document: default
   html_document:
     df_print: paged
 ---
 
+**Group Number: **7
+
+**Group Name: **Regression Heroes
+
+**Group Members:** Ryan Wang, Stella Nam, Hongkai Wang
 
 
-# Exploratory Data Analysis
 
-```{r}
+
+```{r, echo=F}
 library(tidyverse)
 library(stringr)
 library(viridisLite) # nice colours
 ```
 
-## What's the structure of our data?
+## 4. Missing data
 
-```{r}
+```{r, echo=F, include=F}
 dat <- read_csv("data/cancer_reg.csv")
 str(dat)
 summary(dat)
@@ -27,7 +32,7 @@ states <- read_csv("data/50_states.csv") %>%
     add_row(State="District of Columbia", Abbr="DC", `State Capital`="Washington", Region="East")
 ```
 
-```{r}
+```{r, echo=F, include=F}
 # get county names
 dat <- dat %>% 
     mutate(county_name = str_split(Geography, ",") %>% map_chr(., 1))%>%
@@ -56,6 +61,116 @@ dat <- ed %>%
 ```
 
 
+
+```{r}
+no_geodat <- dat %>% select(-c("Geography", "State Capital", "Region", "state", "State", "county_name", "binnedInc")) # no missing counties
+no_geodat[!complete.cases(no_geodat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(no_geodat), names_to = "Covariates", values_to = "Values") %>% # pivot into long table
+    filter(is.na(Values)) %>% # filter out all the non-na's
+    ggplot(aes(x = Covariates)) + 
+    geom_bar(position = "dodge", aes(col = Covariates, fill = Covariates)) + 
+    theme_bw() + 
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+    theme(axis.text.x = element_blank())
+```
+
+
+```{r, fig.height = 5, fig.width = 8}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent employed 16 and over")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctEmployed16_Over)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent employed 16 and over")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+```{r, fig.height = 5, fig.width = 8}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent some college education 18-24")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctSomeCol18_24)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete some college education 18-24")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+
+```{r, fig.height = 5, fig.width = 8}
+# NAs grouped by education
+p1a <- dat[!complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among NA percent alone private coverage")
+    # scale_fill_viridis_d() + 
+    # scale_color_viridis_d() + 
+
+p1b <- dat[complete.cases(dat),] %>%  # keep rows with NAs
+    pivot_longer(colnames(ed)[8:11], names_to = "Education", values_to = "Values") %>% # pivot into long table
+    filter(!is.na(PctPrivateCoverageAlone)) %>% # filter out all the non-na's
+    ggplot(aes(x = Education, y = Values)) + 
+    geom_boxplot(show.legend = F, outlier.shape = NA) +
+    geom_point(aes(col = State), position = position_jitterdodge(jitter.width=0, dodge.width = 0.3)) + 
+    theme_bw() + 
+    theme(axis.text.x = element_text(angle = 90, hjust=1)) + 
+    labs(y = "Percent of adult population", title = "Distribution of Education Among complete percent alone private coverage")
+
+gridExtra::grid.arrange(p1a, p1b, ncol = 2)
+```
+
+```{r}
+colMeans(is.na(no_geodat))*100
+```
+
+
+```{r}
+ed_missing <- setdiff(unique(ed$county_name), unique(dat$county_name))
+filter(ed, county_name %in% ed_missing)
+dat_missing <- setdiff(unique(dat$county_name), unique(ed$county_name))
+filter(dat, county_name %in% dat_missing)
+```
+
+Here we show some difference in county representation within our two integrated cancer trial and socioeconomic dataset with a dataset of education attainment by county. Notably, a large difference in the counties from both datasets is the inclusino of Puerto Rico. While the education dataset includes Puerto Rico, the cancer trial data set does not. This means this missing data is **MAR** for our primary inference since it depends on a covariate *State* (or **MNAR** for our secondary as county is an outcome), however we will consider our analysis without Puerto Rico as it is a unique situation and not localized to the North American land mass. Other missing cancer data are at the county level, not found in the education dataset, similarly, as we are focused on the cancer data, we will disregard these education data (as we have education data for all cancer-statistic counties we have). 
+
+
 ## 5. Modelling Approches
 
 ### a. Fitting an linear model
@@ -67,12 +182,12 @@ library(tidyverse)
 library(tidyr)
 library(ggplot2)
 
-#this line is for setting file path on Bruce's home pc. 
-#setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
-#dat = read_csv("data/cancer_reg.csv")
+```
+
 
 #### data transformation and cleaning: 
 
+```{r}
 hist(dat$medIncome)
 hist(dat$PctWhite)
 hist(dat$MedianAge, breaks = 100)
@@ -86,19 +201,20 @@ hist(dat$MedianAge, breaks = 100)
 ```
 
 
-
 #### model fitting:
 
 ```{r}
 mod1 = lm(data = dat, TARGET_deathRate ~ medIncome + MedianAge + PctWhite)
 summary(mod1)
+```
+
 
 ```{r}
 mod1.1 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite)
 summary(mod1.1)
 anova(mod1.1, mod1)
 ```
- 
+
 
 ```{r}
 mod1.2 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + medIncome*MedianAge)
@@ -109,7 +225,6 @@ mod1.3 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + Pc
 summary(mod1.3)
 anova(mod1.3, mod1)
 ```
-
 
 
 ```{r}
@@ -123,7 +238,6 @@ cor(dat$PctAsian, dat$PctWhite)
 cor(dat$PctBlack, dat$PctWhite)
 cor(dat$PctOtherRace, dat$PctWhite)
 ```
-
 
 
 ```{r}
@@ -146,11 +260,15 @@ dat %>% ggplot(aes(medIncome, TARGET_deathRate)) + geom_point() + geom_smooth(me
 ```
 
 
+We now have this following core model: 
+
 ```{r}
 mod1_core = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2)+ PctWhite + PctAsian + PctOtherRace)
 summary(mod1_core)
 
 ```
+
+Let's evaluate the residual diagnostic to confirm the model's validity:
 
 
 ```{r}
@@ -165,12 +283,16 @@ qqline(standardized_res, col = "steelblue", lwd = 2)
 
 ### b. Logistic/multinomial/ordinal regression
 
-
+First, we can split the lung-cancer death rate into several categories to broadly access the healthcare system at each county. For example, we can artificially create three different categories in the death rate variable. Let's take a look at the death rate distribution. 
 
 
 ```{r}
 hist(dat$TARGET_deathRate, breaks = 100)
 ```
+
+We can make three bins, deathrate < 150, 150 <= deathrate < 200, 200 <= deathrate, and use them as a proxy to the quality of lung cancer prevention and quality of cancer care for each US county. The normal distribution of lung cancer death rate also suggests that dividing outcomes into bins doesn't really benefit us with our primary goal. 
+
+But let's do it anyway to test it out anyway:
 
 
 ```{r}
@@ -194,6 +316,7 @@ points(mod2.1$fitted.values[,3][order(dat$medIncome)]~sort(dat$medIncome), type=
 ```
 
 
+
 ```{r}
 mod2.2 <- multinom(multi ~ PctWhite , data = dat)
 summary(mod2.2)
@@ -203,6 +326,8 @@ plot(mod2.2$fitted.values[,1][order(dat$PctWhite)] ~ sort(dat$PctWhite), type="l
 points(mod2.2$fitted.values[,2][order(dat$PctWhite)] ~ sort(dat$PctWhite), type="l", col="magenta")
 points(mod2.2$fitted.values[,3][order(dat$PctWhite)]~sort(dat$PctWhite), type="l", col="green")
 ```
+
+
 
 
 ### c. Poisson Regression
@@ -235,6 +360,8 @@ print(mean(dat$incidenceRate))
 print(var(dat$incidenceRate))
 ```
 
+
+
 ### Model fits
 ```{r, warning = FALSE}
 # poisson fit
@@ -245,4 +372,3 @@ summary(state_inc_pop_pois)
 state_inc_pop_nb <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015, data=.)
 summary(state_inc_pop_nb)
 ```
-
