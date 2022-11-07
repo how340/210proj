@@ -1,0 +1,248 @@
+---
+title: "BST210 Project appendix"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+
+
+# Exploratory Data Analysis
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(viridisLite) # nice colours
+```
+
+## What's the structure of our data?
+
+```{r}
+dat <- read_csv("data/cancer_reg.csv")
+str(dat)
+summary(dat)
+ed <- read_csv("data/Education.csv")
+states <- read_csv("data/50_states.csv") %>% 
+    add_row(State="District of Columbia", Abbr="DC", `State Capital`="Washington", Region="East")
+```
+
+```{r}
+# get county names
+dat <- dat %>% 
+    mutate(county_name = str_split(Geography, ",") %>% map_chr(., 1))%>%
+    mutate(state = str_extract(Geography, "[^,]+$")) %>% # regex to select everything after ','
+    mutate(state = str_trim(state)) %>%
+    left_join(states, by=c("state" = "State")) %>%
+    filter(county_name != "Valdez-Cordova Census Area")
+
+Encoding(dat$county_name) <- "UTF-8"
+dat$county_name <- iconv(dat$county_name, "UTF-8", "UTF-8", sub='')
+dat <- dat %>%
+    mutate(county_name = ifelse(county_name == "Doa Ana County", "Dona Ana County", county_name))
+
+# get education stats from 2016-2020 https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/
+ed <- ed %>%
+    filter(grepl("2016", Attribute)) %>%
+    rename(county_name = `Area name`) %>%
+    pivot_wider(names_from = Attribute, values_from = Value)  %>%
+    mutate(county_name = case_when(county_name == "La Salle County" & State != "TX" ~ "LaSalle County",
+                                   county_name == "La Salle Parish" ~ "LaSalle Parish",
+                                   TRUE ~ county_name))
+
+dat <- ed %>%
+    right_join(dat, by=c("county_name", "State" = "Abbr")) %>%
+    distinct()
+```
+
+
+## 5. Modelling Approches
+
+### a. Fitting an linear model
+
+
+```{r, echo = F}
+#load data
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+
+#this line is for setting file path on Bruce's home pc. 
+#setwd("C:\\Users\\Bruce\\Desktop\\classes\\bst210")
+#dat = read_csv("data/cancer_reg.csv")
+
+#### data transformation and cleaning: 
+
+hist(dat$medIncome)
+hist(dat$PctWhite)
+hist(dat$MedianAge, breaks = 100)
+```
+
+
+```{r}
+dat = dat %>% filter(MedianAge <= 100)
+
+hist(dat$MedianAge, breaks = 100)
+```
+
+
+
+#### model fitting:
+
+```{r}
+mod1 = lm(data = dat, TARGET_deathRate ~ medIncome + MedianAge + PctWhite)
+summary(mod1)
+
+```{r}
+mod1.1 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite)
+summary(mod1.1)
+anova(mod1.1, mod1)
+```
+ 
+
+```{r}
+mod1.2 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + medIncome*MedianAge)
+summary(mod1.2)
+anova(mod1.2, mod1)
+
+mod1.3 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + PctWhite*MedianAge)
+summary(mod1.3)
+anova(mod1.3, mod1)
+```
+
+
+
+```{r}
+mod1.4 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctBlack + PctAsian + PctOtherRace)
+summary(mod1.4)
+```
+
+
+```{r}
+cor(dat$PctAsian, dat$PctWhite)
+cor(dat$PctBlack, dat$PctWhite)
+cor(dat$PctOtherRace, dat$PctWhite)
+```
+
+
+
+```{r}
+mod1.5 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + PctAsian + PctOtherRace)
+summary(mod1.5)
+anova(mod1.5, mod1.1)
+```
+
+
+```{r}
+mod1.6 = lm(data = dat, TARGET_deathRate ~ medIncome)
+summary(mod1.6)
+mod1.6.1 = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2))
+summary(mod1.6.1)
+anova(mod1.6, mod1.6.1)
+
+predict = data.frame(TARGET_deathRate = predict(mod1.6.1, dat), medIncome = dat$medIncome)
+
+dat %>% ggplot(aes(medIncome, TARGET_deathRate)) + geom_point() + geom_smooth(method = "lm") + geom_line(data = predict, aes(medIncome,TARGET_deathRate ), color = "red")
+```
+
+
+```{r}
+mod1_core = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2)+ PctWhite + PctAsian + PctOtherRace)
+summary(mod1_core)
+
+```
+
+
+```{r}
+standardized_res = rstandard(mod1_core)
+scatter.smooth(standardized_res, main = "standardized residual")
+qplot(standardized_res, binwidth = 0.2)
+
+qqnorm(standardized_res, pch = 1, frame = FALSE)
+qqline(standardized_res, col = "steelblue", lwd = 2)
+```
+
+
+### b. Logistic/multinomial/ordinal regression
+
+
+
+
+```{r}
+hist(dat$TARGET_deathRate, breaks = 100)
+```
+
+
+```{r}
+#create the three bins
+dat = dat %>% mutate(multi = case_when(TARGET_deathRate < 150 ~ 1, TARGET_deathRate < 200 ~ 2, T ~ 3))
+# 3 is bad quality lung cancer prevention, 2 is medium, 1 is good quality.  
+```
+
+
+
+```{r}
+library(nnet)
+mod2.1 <- multinom(multi ~ medIncome + I(medIncome ^2), data = dat)
+summary(mod2.1)
+```
+
+```{r}
+plot(mod2.1$fitted.values[,1][order(dat$medIncome)] ~ sort(dat$medIncome), type="l", col="dodgerblue", xlab=c("Median Income"), ylab="Predicted Probability", ylim=c(0,1))
+points(mod2.1$fitted.values[,2][order(dat$medIncome)] ~ sort(dat$medIncome), type="l", col="magenta")
+points(mod2.1$fitted.values[,3][order(dat$medIncome)]~sort(dat$medIncome), type="l", col="green")
+```
+
+
+```{r}
+mod2.2 <- multinom(multi ~ PctWhite , data = dat)
+summary(mod2.2)
+
+
+plot(mod2.2$fitted.values[,1][order(dat$PctWhite)] ~ sort(dat$PctWhite), type="l", col="dodgerblue", xlab=c("Percentage of white residents"), ylab="Predicted Probability", ylim=c(0,1))
+points(mod2.2$fitted.values[,2][order(dat$PctWhite)] ~ sort(dat$PctWhite), type="l", col="magenta")
+points(mod2.2$fitted.values[,3][order(dat$PctWhite)]~sort(dat$PctWhite), type="l", col="green")
+```
+
+
+### c. Poisson Regression
+
+### Over-dispersion
+```{r}
+hist(dat$TARGET_deathRate, freq = F, ylim = c(0, 0.04))
+lines(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), dpois(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), lambda = mean(dat$TARGET_deathRate)))
+```
+```{r}
+print(mean(dat$TARGET_deathRate))
+print(var(dat$TARGET_deathRate))
+```
+
+```{r}
+hist(dat$avgAnnCount/dat$popEst2015, freq = F)#, ylim = c(0, 0.04))
+lines(as.integer(min(dat$avgAnnCount/dat$popEst2015)):as.integer(max(dat$avgAnnCount/dat$popEst2015)), dpois(as.integer(min(dat$avgAnnCount/dat$popEst2015)):as.integer(max(dat$avgAnnCount/dat$popEst2015)), lambda = mean(dat$avgAnnCount/dat$popEst2015)))
+```
+```{r}
+mean(dat$avgDeathsPerYear/dat$popEst2015)
+var(dat$avgDeathsPerYear/dat$popEst2015)
+```
+
+```{r}
+hist(dat$incidenceRate, freq = F, ylim = c(0, 0.02))
+lines(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), dpois(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), lambda = mean(dat$incidenceRate)))
+```
+```{r}
+print(mean(dat$incidenceRate))
+print(var(dat$incidenceRate))
+```
+
+### Model fits
+```{r, warning = FALSE}
+# poisson fit
+state_inc_pop_pois <- dat %>% glm(formula = TARGET_deathRate ~ medIncome + State + popEst2015, family=poisson(), data=.)
+summary(state_inc_pop_pois)
+
+# neg bin fit
+state_inc_pop_nb <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015, data=.)
+summary(state_inc_pop_nb)
+```
+
