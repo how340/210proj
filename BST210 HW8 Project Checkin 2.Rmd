@@ -56,7 +56,7 @@ At the moment, we do not have too many changes we want to make to our analysis p
   * \textcolor{blue}{Currently, based on our EDA and project checkins, median income, median age, and public health coverage seem like good potential factors we can include as SES. Additionally, we are continually updating our dataset with other factors we believe are revelant to our primary and secondary questions such as data on politcal preference and education attainment data.}
 * Data cleaning and computing additional predictors (e.g., regions, climate... )
   * \textcolor{blue}{Given that we have a lot of missing data, especially for the college education section, we will discard this data as it will be difficult to address and work with data where so much of it is missing. (more  on this in question 4)}
-  * \textcolor{blue}{For incurace data where we have around 20 percent missing data, we will perform a sensitivity analysis by viewing models under complete cases, under imputation, and under other missing data methods such as inverse proportional weighting.}
+  * \textcolor{blue}{For insurance data where we have around 20 percent missing data, we will perform a sensitivity analysis by viewing models under complete cases, under imputation, and under other missing data methods such as inverse proportional weighting.}
 * As our data is on the county-level, we aim to add a dimension to our analysis by aggregating these data onto the state-level, which would allow us to study state-by-state differences in socioeconomic conditions and cancer outcomes
 * Create comprehensive visualization of our demographic data to illustrate
 differences between US counties and states
@@ -68,7 +68,7 @@ differences between US counties and states
 
 * We are potentially interested in looking at state-level and county-level differences in demographics and insurance status
 * Here we will employ multinomial models in order to model the probability of some set of socioeconomic conditions and cancer outcomes being in a given county or state
-* \textcolor{blue}{We are also interested in looking at the relatonship between socioeconomic status and political tendencies political preference of different demographic groups. We will find an additional data on voting outcomes from a recent US election and merge that with our current dataset. Since the US elections use a bipartisan system, we can use logistic linear regression to understand this relationship.}
+* \textcolor{blue}{We are also interested in looking at the relationship between socioeconomic status and political preference of different demographic groups. We will find an additional data on voting outcomes from a recent US election and merge that with our current dataset. Since the US elections use a bipartisan system, we can use logistic linear regression to understand this relationship.}
 
 **Predictive Problem:**
 
@@ -107,7 +107,13 @@ Given the lack of research on socioeconomic factors on cancer prevalence in the 
 
 **Research and Analysis Methods:**
 
-The project will ..../
+The data employed 34 potential covariates of interest related to socioeconomic and demographic factors. For our primary analysis, a Poisson regression model is employed to estimate the socioeconomic status-related incidence and mortality rates of lung cancer from our data. Furthermore, the data were stratified by state level to understand the state-by-state differences in socioeconomic conditions and lung cancer outcomes. To account for overdispersion, an extension of the Poisson model, the Negative Binomial regression, was used to prevent overconfident estimates. No further modifications were made to the data set to perform a Negative Binomial regression because the data was already in counts or rate form. 
+
+Once we have identified some covariates of interest, various smoothing methods were utilized in order to determine the relative correlations in the data. (Please note, we have not finalized yet at this point in our project. However, one of the covariates we are considering is median income and the percentage of the white population within a county because it is significantly correlated with the lung cancer death rate. We also need to further study the potential confounders and effect modifiers within our potential covariates in our data set -- median age was considered in this project check-in. For the covariates we are not interested in interpreting in our final project, we plan to adjust for them flexibly using splines/GAMs).
+
+For our secondary analysis, multinomial regression models were employed to model the probability of some set of socioeconomic conditions and cancer outcomes being in a given county or state in order to better understand state-level and county-level differences in demographics and insurance status. To investigate whether the political tendencies of different demographic groups could impact lung cancer outcomes, the logistic linear regression model was used. 
+
+All the statistical analyses were carried out with R. The graphical visualization of the results was done in R using basic R and the package "tidyverse."
 
 **Note:** We did not feel that we were ready to outline any results or discussion yet in our project.
 
