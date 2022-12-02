@@ -274,7 +274,9 @@ Several co-variates from our data is specifically useful in defining the social-
 #### Model assumptions: 
 Since our data are sourced from census, and goverment sources, we have reason to believe that each predictor variables following the central limiting theorem (each covariate entry is the mean over multiple years samples), and the LINE assumptions should be met. 
 
-#### data transformation and cleaning: 
+#### data transformation and cleaning
+
+let's take a look at these columns
 
 ```{r, echo = F}
 hist(dat$medIncome)
