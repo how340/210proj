@@ -453,44 +453,74 @@ points(mod2.2$fitted.values[,3][order(dat$PctWhite)]~sort(dat$PctWhite), type="l
 
 ```{r}
 library(nnet)
-dat$medIncome
+dat %>% select(Region) %>% unique()
 
-mod3.0 = multinom(data = dat, state ~ medIncome + MedianAge + popEst2015 + PctWhite + PctOtherRace)
+mod3.0 = multinom(data = dat, Region ~ medIncome + MedianAge + popEst2015 + PctWhite + PctOtherRace)
 
-#Alabama is used as the baseline here. 
+#South used as the baseline here. 
 summary(mod3.0)
-```
-
-```{r}
-
-mod3.0$fitted.values[,1]
-
-
-
-plot(mod3.0$fitted.values[,1][order(dat$medIncome)] ~ sort(dat$medIncome), type="l", col="dodgerblue")
-
-
-
-points(mod3.0$fitted.values[,2][order(dat$medIncome)] ~ sort(dat$medIncome), type="l", col="magenta")
-points(mod3.0$fitted.values[,3][order(dat$medIncome)]~sort(dat$medIncome), type="l", col="green")
 ```
 
 ```{r}
 upper = coef(mod3.0) + 1.96*summary(mod3.0)$standard.errors
 lower = coef(mod3.0) - 1.96*summary(mod3.0)$standard.errors
 
+
+upper
+lower 
 coeff = coef(mod3.0)
-states = rownames(coeff)
+```
+```{r}
+mod3.0$fitted.values
+```
 
-tmp = as.data.frame(cbind(states, coeff[,1]))
-colnames(tmp)[2]  = "medIncome"
 
-tmp
-ggplot(tmp, aes(states, medIncome))+ geom_point()
+```{r}
+
+tmp = as.data.frame(cbind(mod3.0$fitted.values[,1], dat$MedianAge))
+tmp2 = as.data.frame(cbind(mod3.0$fitted.values[,2], dat$MedianAge))
+tmp3 = as.data.frame(cbind(mod3.0$fitted.values[,3], dat$MedianAge))
+tmp4 = as.data.frame(cbind(mod3.0$fitted.values[,4], dat$MedianAge))
+tmp5 = as.data.frame(cbind(mod3.0$fitted.values[,5], dat$MedianAge))
+
+ggplot() + geom_smooth(data = tmp, aes(V2, V1)) + geom_smooth(data = tmp2, aes(V2, V1), col = "red") + geom_smooth(data = tmp3, aes(V2, V1), col = "green") + geom_smooth(data = tmp4, aes(V2, V1), col = "black") + geom_smooth(data = tmp5, aes(V2, V1), col = "yellow") + ggtitle("Median Age")
 
 ```
 
 
+```{r}
+tmp = as.data.frame(cbind(mod3.0$fitted.values[,1], dat$medIncome))
+tmp2 = as.data.frame(cbind(mod3.0$fitted.values[,2], dat$medIncome))
+tmp3 = as.data.frame(cbind(mod3.0$fitted.values[,3], dat$medIncome))
+tmp4 = as.data.frame(cbind(mod3.0$fitted.values[,4], dat$medIncome))
+tmp5 = as.data.frame(cbind(mod3.0$fitted.values[,5], dat$medIncome))
+
+ggplot() + geom_smooth(data = tmp, aes(V2, V1)) + geom_smooth(data = tmp2, aes(V2, V1), col = "red") + geom_smooth(data = tmp3, aes(V2, V1), col = "green") + geom_smooth(data = tmp4, aes(V2, V1), col = "black") + geom_smooth(data = tmp5, aes(V2, V1), col = "yellow") + ggtitle("Median Income")
+
+```
+
+```{r}
+tmp = as.data.frame(cbind(mod3.0$fitted.values[,1], dat$popEst2015))
+tmp2 = as.data.frame(cbind(mod3.0$fitted.values[,2], dat$popEst2015))
+tmp3 = as.data.frame(cbind(mod3.0$fitted.values[,3], dat$popEst2015))
+tmp4 = as.data.frame(cbind(mod3.0$fitted.values[,4], dat$popEst2015))
+tmp5 = as.data.frame(cbind(mod3.0$fitted.values[,5], dat$popEst2015))
+
+ggplot() + geom_smooth(data = tmp, aes(V2, V1)) + geom_smooth(data = tmp2, aes(V2, V1), col = "red") + geom_smooth(data = tmp3, aes(V2, V1), col = "green") + geom_smooth(data = tmp4, aes(V2, V1), col = "black") + geom_smooth(data = tmp5, aes(V2, V1), col = "yellow") + ggtitle("popEst2015")
+```
+
+```{r}
+tmp = as.data.frame(cbind(mod3.0$fitted.values[,1], dat$PctWhite))
+tmp2 = as.data.frame(cbind(mod3.0$fitted.values[,2], dat$PctWhite))
+tmp3 = as.data.frame(cbind(mod3.0$fitted.values[,3], dat$PctWhite))
+tmp4 = as.data.frame(cbind(mod3.0$fitted.values[,4], dat$PctWhite))
+tmp5 = as.data.frame(cbind(mod3.0$fitted.values[,5], dat$PctWhite))
+
+ggplot() + geom_smooth(data = tmp, aes(V2, V1)) + geom_smooth(data = tmp2, aes(V2, V1), col = "red") + geom_smooth(data = tmp3, aes(V2, V1), col = "green") + geom_smooth(data = tmp4, aes(V2, V1), col = "black") + geom_smooth(data = tmp5, aes(V2, V1), col = "yellow") + ggtitle("PctWhite")
+```
+
+
+All of these are significant actually. 
 ### c. Poisson Regression
 
 ### Over-dispersion
