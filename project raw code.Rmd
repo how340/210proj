@@ -370,6 +370,7 @@ cov(dat$PctAsian, dat$no_highschool)
 lin_final = lm(data = dat, TARGET_deathRate ~ medIncome + I(medIncome ^2) + MedianAge + PctWhite  + PctOtherRace + no_highschool + highschool  + PctPublicCoverageAlone + PctPrivateCoverageAlone+ PctPublicCoverageAlone*PctPrivateCoverageAlone + PercentMarried + PercentMarried*MedianAge)
 
 summary(lin_final)
+
 ```
 ### simple linear model evaluation. 
 Let's evaluate the residual diagnostic to confirm the model's validity:
@@ -377,8 +378,8 @@ Let's evaluate the residual diagnostic to confirm the model's validity:
 
 ```{r}
 standardized_res = rstandard(lin_final)
-scatter.smooth(standardized_res, main = "standardized residual")
-qplot(standardized_res, binwidth = 0.2)
+scatter.smooth(standardized_res, main = "Linear Regression Model Standardized Residuals", ylab = "Standarized Residual Value")
+qplot(standardized_res, binwidth = 0.2, main = "Distribution of Standarized Residuals", ylab = "Count", xlab = "Residual Value")
 
 qqnorm(standardized_res, pch = 1, frame = FALSE)
 qqline(standardized_res, col = "steelblue", lwd = 2)
@@ -390,10 +391,25 @@ We can also try some other linear model fitting methods. We haven't done anythin
 ### b. Logistic/multinomial/ordinal regression
 
 First, we can split the lung-cancer death rate into several categories to broadly access the healthcare system at each county. For example, we can artificially create three different categories in the death rate variable. Let's take a look at the death rate distribution. 
+```{r}
+#Create a sequence of 100 equally spaced numbers between -4 and 4
+x <- seq(-4, 4, length=100)
+
+#create a vector of values that shows the height of the probability distribution
+#for each value in x
+y <- dnorm(x)
+
+#plot x and y as a scatterplot with connected lines (type = "l") and add
+#an x-axis with custom labels
+plot(x,y, type = "l", lwd = 2, axes = FALSE, xlab = "", ylab = "")
+axis(1, at = -3:3, labels = c("-3s", "-2s", "-1s", "mean", "1s", "2s", "3s"))
+```
 
 
 ```{r}
-hist(dat$TARGET_deathRate, breaks = 100)
+hist(dat$TARGET_deathRate, breaks = 100, main = "Distribution of Lung Cancer-Related Death Rate", xlab = "County Death Rate")
+
+
 ```
 
 We can make three bins, deathrate < 150, 150 <= deathrate < 200, 200 <= deathrate, and use them as a proxy to the quality of lung cancer prevention and quality of cancer care for each US county. The normal distribution of lung cancer death rate also suggests that dividing outcomes into bins doesn't really benefit us with our primary goal. 
