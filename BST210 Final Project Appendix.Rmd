@@ -427,10 +427,6 @@ tmp %>% ggplot(aes(age, coef, color = region) ) + geom_smooth() + ggtitle("Impac
 ```
 
 
-
-
-
-
 # Poisson Regression
 
 ### Over-dispersion
@@ -463,7 +459,7 @@ print(var(dat$incidenceRate))
 
 ### Model fits
 ```{r, warning = FALSE}
-# poisson fit general
+# poisson fit general (general = only include median income, state, population size)
 pois_general <- dat %>% glm(formula = TARGET_deathRate ~ medIncome + State + popEst2015, family=poisson(), data=.)
 summary(pois_general)
 
@@ -471,22 +467,79 @@ summary(pois_general)
 neg_bin <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015, data=.)
 summary(neg_bin)
 
-# neg bin fit with other covariates from model anaylsis
-## no interaction terms, just race dist.
-neg_bin_no_int <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace, data=.)
-summary(neg_bin_no_int)
+neg_bin_EMM <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + medIncome*popEst2015, data=.)
+summary(neg_bin_EMM) # check effect modification 
+# EMM modification since interaction term p-value = 0.043268 
+# decrease in AIC keep EMM model (27078)
+```
 
-# all interaction terms
-neg_bin_all_int <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace + PctWhite*medIncome + PctAsian*medIncome + PctOtherRace*medIncome, data=.)
-summary(neg_bin_all_int)
-# makes medIncome term not significant 
 
-# interaction terms PctAsian*medIncome and PctOtherRace*medIncome not significant: final model
-neg_bin_final <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace + PctWhite*medIncome, data=.)
+From linear regression model analysis, covariates included MedianAge, PctWhite, PctOtherRace, no_highschool, highschool, PctPublicCoverageAlone, PctPrivateCoverageAlone, PctPublicCoverageAlonexPctPrivateCoverageAlone, PercentMarried, PercentMarriedxMedianAge. 
+Some of these covariates are considered for the poisson extension model:
+
+```{r setup, warning=FALSE}
+# NOTE: Some summary functions commented out to save space
+# AIC and p-values for these were written as comments
+
+# include median age
+neg_bin_2 <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + medIncome*popEst2015 + MedianAge, data=.)
+summary(neg_bin_2)$aic # AIC decrease (27074)
+
+# include race data 
+neg_bin_3 <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + medIncome*popEst2015 + MedianAge, data=.)
+summary(neg_bin_3)$aic # AIC decrease (27074)
+
+neg_bin_4 <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + medIncome*popEst2015 + MedianAge + PctWhite + PctAsian + PctOtherRace, data=.)
+summary(neg_bin_4)$aic # AIC decrease (27003)
+
+neg_bin_3_EMM <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + medIncome*popEst2015 + MedianAge + PctWhite + PctAsian + PctOtherRace + PctOtherRace*medIncome, data=.)
+#summary(neg_bin_3_EMM) # check effect modification - only PctOtherRace*medIncome shown
+# MedianAge*medIncome covar of interest not sig and not sig change in AIC
+# PctWhite*medIncome covar of interest not sig and not sig change in AIC
+# PctAsian*medIncome term is not sig and no sig change in AIC (slight increase)
+# PctOtherRace*medIncome term is not sig and no sig change in AIC (slight increase)
+
+# include education 
+neg_bin_5 <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + medIncome*popEst2015 + MedianAge + PctWhite + PctAsian + PctOtherRace + no_highschool + highschool, data=.)
+summary(neg_bin_5)$aic # AIC decrease (26900), 
+#but no_highschool (p= 0.256580), PctAsian (p=0.277823), popEst2015 (p=0.380916), 
+      #and medIncome:popEst2015(p=0.362506) not significant
+
+neg_bin_5b <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + MedianAge + PctWhite + PctAsian + PctOtherRace + highschool, data=.)
+#summary(neg_bin_5b)
+# remove no_highschool and popEst2015 (since sign for most of previous models 
+    #have not been highly sig (p-value close to 0.05))
+# AIC slightly decrease (26896) but almost no change, keep this model for simplicity
+# PctAsian still not sig (p=0.418288)
+
+neg_bin_5c <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + MedianAge + PctWhite + PctOtherRace + highschool, data=.)
+summary(neg_bin_5c)$aic 
+# AIC almost no change but ever so slight decrease (26895), 
+#keep this model for simplicity
+
+neg_bin_5c_EMM <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + MedianAge + PctWhite + PctOtherRace + highschool + highschool*medIncome, data=.)
+#summary(neg_bin_5c_EMM) 
+# check effect modification: no EMM (p=0.551039), keep neg_bin_5c
+
+# include health coverage
+neg_bin_6 <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + MedianAge + PctWhite + PctOtherRace + highschool + PctPublicCoverageAlone + PctPrivateCoverageAlone, data=.)
+summary(neg_bin_6)$aic # AIC decrease a lot (21553)
+
+neg_bin_6_EMM <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + MedianAge + PctWhite + PctOtherRace + highschool + PctPublicCoverageAlone + PctPrivateCoverageAlone + medIncome*PctPrivateCoverageAlone, data=.)
+#summary(neg_bin_6_EMM) 
+# check Effect modification; only medIncome*PctPrivateCoverageAlone term shown here
+# PctPublicCoverageAlone*PctPrivateCoverageAlone: 
+        ## AIC almost no change (21548); slight EMM, 
+        ## but sig of other covariates seems to decrease a lot, so exclude
+# PctPublicCoverageAlone*medIncome: no EMM (p=0.663161)
+# medIncome*PctPrivateCoverageAlone: no EMM (p=0.895889)
+
+# final model: neg_bin_6
+neg_bin_final <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + MedianAge + PctWhite + PctOtherRace + highschool + PctPublicCoverageAlone + PctPrivateCoverageAlone, data=.)
 summary(neg_bin_final)
 
 # compare final model to regular poisson model with same covariates
-pois_final <- dat %>% glm(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace + PctWhite*medIncome, family=poisson(), data=.)
+pois_final <- dat %>% glm(formula = TARGET_deathRate ~medIncome + State + MedianAge + PctWhite + PctOtherRace + highschool + PctPublicCoverageAlone + PctPrivateCoverageAlone, family=poisson(), data=.)
 summary(pois_final)
 ```
 
