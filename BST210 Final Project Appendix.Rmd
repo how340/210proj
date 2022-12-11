@@ -17,14 +17,14 @@ library(stringr)
 library(viridisLite) 
 ```
 
-```{r}
+```{r, echo = F}
 dat <- read_csv("data/cancer_reg.csv")
 ed <- read_csv("data/Education.csv")
 states <- read_csv("data/50_states.csv") %>% 
     add_row(State="District of Columbia", Abbr="DC", `State Capital`="Washington", Region="East")
 ```
 
-```{r}
+```{r, echo=F}
 # get county names
 dat <- dat %>% 
     mutate(county_name = str_split(Geography, ",") %>% map_chr(., 1))%>%
@@ -52,11 +52,18 @@ dat <- ed %>%
     distinct()
 ```
 
-```{r}
-#need to rename some of the columns 
-dat = dat %>% mutate(no_highschool = `Percent of adults with less than a high school diploma, 2016-20`, highschool = `Percent of adults with a high school diploma only, 2016-20`, some_college = `Percent of adults completing some college or associate's degree, 2016-20`, college = `Percent of adults with a bachelor's degree or higher 2016-20`)
-dat = dat %>% mutate(multi = case_when(TARGET_deathRate < 150 ~ 1, TARGET_deathRate < 200 ~ 2, T ~ 3))
+```{r, echo=F}
+dat = dat %>% filter(MedianAge <= 100)
 
+hist(dat$MedianAge, breaks = 100)
+```
+
+
+```{r, echo=F}
+ed_missing <- setdiff(unique(ed$county_name), unique(dat$county_name))
+filter(ed, county_name %in% ed_missing)
+dat_missing <- setdiff(unique(dat$county_name), unique(ed$county_name))
+filter(dat, county_name %in% dat_missing)
 ```
 
 # Linear model fitting:
@@ -70,8 +77,6 @@ dat = dat %>% mutate(no_highschool = `Percent of adults with less than a high sc
 
 
 ```{r}
-
-
 mod1 = lm(data = dat, TARGET_deathRate ~ medIncome + MedianAge + PctWhite)
 summary(mod1)
 ```
@@ -93,9 +98,6 @@ mod1.3 = lm(data = dat, TARGET_deathRate ~ medIncome + PctWhite + MedianAge + Pc
 summary(mod1.3)
 anova(mod1.3, mod1)
 ```
-
-
-
 
 
 ```{r}
