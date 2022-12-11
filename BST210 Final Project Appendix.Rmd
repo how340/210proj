@@ -1,0 +1,120 @@
+---
+title: "BST210 Final Project Appendix"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+**Group Number: **7
+
+**Group Name: **Regression Heroes
+
+**Group Members:** Ryan Wang, Stella Nam, Hongkai Wang
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(viridisLite) # nice colours
+```
+
+```{r}
+dat <- read_csv("data/cancer_reg.csv")
+ed <- read_csv("data/Education.csv")
+states <- read_csv("data/50_states.csv") %>% 
+    add_row(State="District of Columbia", Abbr="DC", `State Capital`="Washington", Region="East")
+```
+
+```{r}
+# get county names
+dat <- dat %>% 
+    mutate(county_name = str_split(Geography, ",") %>% map_chr(., 1))%>%
+    mutate(state = str_extract(Geography, "[^,]+$")) %>% # regex to select everything after ','
+    mutate(state = str_trim(state)) %>%
+    left_join(states, by=c("state" = "State")) %>%
+    filter(county_name != "Valdez-Cordova Census Area")
+
+Encoding(dat$county_name) <- "UTF-8"
+dat$county_name <- iconv(dat$county_name, "UTF-8", "UTF-8", sub='')
+dat <- dat %>%
+    mutate(county_name = ifelse(county_name == "Doa Ana County", "Dona Ana County", county_name))
+
+# get education stats from 2016-2020 https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/
+ed <- ed %>%
+    filter(grepl("2016", Attribute)) %>%
+    rename(county_name = `Area name`) %>%
+    pivot_wider(names_from = Attribute, values_from = Value)  %>%
+    mutate(county_name = case_when(county_name == "La Salle County" & State != "TX" ~ "LaSalle County",
+                                   county_name == "La Salle Parish" ~ "LaSalle Parish",
+                                   TRUE ~ county_name))
+
+dat <- ed %>%
+    right_join(dat, by=c("county_name", "State" = "Abbr")) %>%
+    distinct()
+```
+
+```{r}
+#need to rename some of the columns 
+dat = dat %>% mutate(no_highschool = `Percent of adults with less than a high school diploma, 2016-20`, highschool = `Percent of adults with a high school diploma only, 2016-20`, some_college = `Percent of adults completing some college or associate's degree, 2016-20`, college = `Percent of adults with a bachelor's degree or higher 2016-20`)
+dat = dat %>% mutate(multi = case_when(TARGET_deathRate < 150 ~ 1, TARGET_deathRate < 200 ~ 2, T ~ 3))
+
+```
+
+# Poisson Regression
+
+### Over-dispersion
+```{r}
+hist(dat$TARGET_deathRate, freq = F, ylim = c(0, 0.04), main = "Density Distribution of Lung-Cancer Death Rate", xlab = "County Death Rate", ylab = "Density")
+lines(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), dpois(as.integer(min(dat$TARGET_deathRate)):as.integer(max(dat$TARGET_deathRate)), lambda = mean(dat$TARGET_deathRate)))
+```
+```{r}
+print(mean(dat$TARGET_deathRate))
+print(var(dat$TARGET_deathRate))
+```
+
+```{r}
+hist(dat$avgAnnCount/dat$popEst2015, freq = F, main = "Density Distribution of Average Annual Lung-Cancer Incidence Rate Per County", xlab = "Average Incidence Rate per County", ylab = "Density")#, ylim = c(0, 0.04))
+lines(as.integer(min(dat$avgAnnCount/dat$popEst2015)):as.integer(max(dat$avgAnnCount/dat$popEst2015)), dpois(as.integer(min(dat$avgAnnCount/dat$popEst2015)):as.integer(max(dat$avgAnnCount/dat$popEst2015)), lambda = mean(dat$avgAnnCount/dat$popEst2015)))
+```
+```{r}
+mean(dat$avgDeathsPerYear/dat$popEst2015)
+var(dat$avgDeathsPerYear/dat$popEst2015)
+```
+
+```{r}
+hist(dat$incidenceRate, freq = F, ylim = c(0, 0.02), main = "Density Distribution of Incidence Rate of All Cancers", xlab = "Incidence Rate of All Cancers (age-adjusted)", ylab = "Density")
+lines(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), dpois(as.integer(min(dat$incidenceRate)):as.integer(max(dat$incidenceRate)), lambda = mean(dat$incidenceRate)))
+```
+```{r}
+print(mean(dat$incidenceRate))
+print(var(dat$incidenceRate))
+```
+
+### Model fits
+```{r, warning = FALSE}
+# poisson fit general
+pois_general <- dat %>% glm(formula = TARGET_deathRate ~ medIncome + State + popEst2015, family=poisson(), data=.)
+summary(pois_general)
+
+# neg bin fit general 
+neg_bin <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015, data=.)
+summary(neg_bin)
+
+# neg bin fit with other covariates from model anaylsis
+## no interaction terms, just race dist.
+neg_bin_no_int <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace, data=.)
+summary(neg_bin_no_int)
+
+# all interaction terms
+neg_bin_all_int <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace + PctWhite*medIncome + PctAsian*medIncome + PctOtherRace*medIncome, data=.)
+summary(neg_bin_all_int)
+# makes medIncome term not significant 
+
+# interaction terms PctAsian*medIncome and PctOtherRace*medIncome not significant: final model
+neg_bin_final <- dat %>% MASS::glm.nb(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace + PctWhite*medIncome, data=.)
+summary(neg_bin_final)
+
+# compare final model to regular poisson model with same covariates
+pois_final <- dat %>% glm(formula = TARGET_deathRate ~ medIncome + State + popEst2015 + PctWhite + PctAsian + PctOtherRace + PctWhite*medIncome, family=poisson(), data=.)
+summary(pois_final)
+```
+
